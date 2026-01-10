@@ -1,31 +1,18 @@
-<script src="config.js"></script>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Login</title>
+</head>
+<body>
 
-<script>
-async function gerarHash(texto) {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(texto);
-    const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-    return Array.from(new Uint8Array(hashBuffer))
-        .map(b => b.toString(16).padStart(2, "0"))
-        .join("");
-}
+<h2>Login</h2>
 
-async function login() {
-    const usuario = document.getElementById("usuario").value.trim();
-    const senha = document.getElementById("senha").value;
+<input id="user" placeholder="Usuário"><br><br>
+<input id="pass" type="password" placeholder="Senha"><br><br>
 
-    if (!usuario || !senha) {
-        alert("Preencha usuário e senha");
-        return;
-    }
+<button onclick="login()">Entrar</button>
 
-    const hashDigitado = await gerarHash(senha);
-
-    if (usuario === USUARIO_FIXO && hashDigitado === HASH_SENHA) {
-        localStorage.setItem("logado", "true");
-        location.href = "index.html";
-    } else {
-        alert("Usuário ou senha inválidos");
-    }
-}
-</script>
+<script src="auth.js"></script>
+</body>
+</html>
