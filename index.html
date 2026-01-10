@@ -25,12 +25,8 @@ label {
 
 <body>
 
-<script>
-// 🔒 LOGIN OBRIGATÓRIO
-if (localStorage.getItem("logado") !== "sim") {
-    location.href = "login.html";
-}
-</script>
+<script src="auth.js"></script>
+<script>checkAuth()</script>
 
 <h2>Controle de Pagamentos</h2>
 
@@ -227,4 +223,5 @@ atualizar();
 
 </body>
 </html>
+
 
