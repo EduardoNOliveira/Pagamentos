@@ -2,95 +2,31 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Login</title>
-
-<style>
-body {
-  font-family: Arial, sans-serif;
-  background: #f7f7f7;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-}
-
-.box {
-  background: #fff;
-  padding: 20px;
-  border-radius: 8px;
-  width: 100%;
-  max-width: 320px;
-}
-
-input, button {
-  width: 100%;
-  padding: 10px;
-  margin-top: 10px;
-  font-size: 16px;
-}
-
-button {
-  background: #333;
-  color: #fff;
-  border: none;
-  cursor: pointer;
-}
-</style>
 </head>
-
 <body>
 
-<div class="box">
-<h3>Login</h3>
+<h2>Login</h2>
 
-<input type="text" id="user" placeholder="Usuário">
-<input type="password" id="pass" placeholder="Senha">
+<input type="text" id="usuario" placeholder="Usuário">
+<br><br>
+<input type="password" id="senha" placeholder="Senha">
+<br><br>
 
-<button onclick="entrar()">Entrar</button>
-
-<p id="msg"></p>
-</div>
+<button onclick="login()">Entrar</button>
 
 <script>
-function hash(str) {
-  return btoa(unescape(encodeURIComponent(str)));
-}
+function login() {
+    const usuario = document.getElementById("usuario").value;
+    const senha = document.getElementById("senha").value;
 
-function entrar() {
-  const u = document.getElementById('user').value.trim();
-  const p = document.getElementById('pass').value;
-
-  if (!u || !p) {
-    msg('Preencha usuário e senha');
-    return;
-  }
-
-  const hashPass = hash(p);
-
-  const userSalvo = localStorage.getItem('auth_user');
-  const hashSalvo = localStorage.getItem('auth_hash');
-
-  // PRIMEIRO ACESSO → CRIA USUÁRIO
-  if (!userSalvo || !hashSalvo) {
-    localStorage.setItem('auth_user', u);
-    localStorage.setItem('auth_hash', hashPass);
-    sessionStorage.setItem('auth_ok', '1');
-    window.location.href = 'index.html';
-    return;
-  }
-
-  // LOGIN NORMAL
-  if (u === userSalvo && hashPass === hashSalvo) {
-    sessionStorage.setItem('auth_ok', '1');
-    window.location.href = 'index.html';
-  } else {
-    msg('Usuário ou senha incorretos');
-  }
-}
-
-function msg(t) {
-  document.getElementById('msg').textContent = t;
+    // LOGIN FIXO (simples e funcional)
+    if (usuario === "admin" && senha === "1234") {
+        localStorage.setItem("logado", "true");
+        window.location.href = "index.html";
+    } else {
+        alert("Usuário ou senha inválidos");
+    }
 }
 </script>
 
