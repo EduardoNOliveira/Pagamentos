@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pagamentos</title>
+
+<script>
+if (!sessionStorage.getItem('auth_ok')) {
+  window.location.href = 'login.html';
+}
+</script>
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  margin: 10px;
+  background: #f7f7f7;
+}
+.box {
+  background: #fff;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+label {
+  display: flex;
+  align-items: center;
+  font-size: 16px;
+  padding: 6px 0;
+}
+input[type=checkbox] {
+  width: 20px;
+  height: 20px;
+  margin-right: 10px;
+}
+button {
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  margin-top: 8px;
+  border: none;
+  border-radius: 6px;
+}
+.copy { background:#25D366; color:#fff; }
+.clear { background:#d9534f; color:#fff; }
+.pago { color: green; font-weight: bold; }
+.pendente { color: red; }
+</style>
+</head>
+
+<body>
+
+<h2>COTA MENSAL</h2>
+
+<div class="box">
+<p>
+Valor: <strong>R$ 19,60</strong><br>
+Mês: <strong id="mes"></strong><br>
+PIX: <strong>71999989616</strong>
+</p>
+</div>
+
+<div class="box">
+<h3>Pagos</h3>
+<ul id="pagos"></ul>
+<p>
+Cotas pagas: <strong id="qtd">00</strong><br>
+Total: <strong id="total">R$ 0,00</strong>
+</p>
+</div>
+
+<div class="box">
+<h3>Pendentes</h3>
+<ul id="pendentes"></ul>
+</div>
+
+<div class="box">
+<h3>Controle</h3>
+<div id="checks"></div>
+</div>
+
+<button class="copy" onclick="copiar()">Copiar</button>
+<button class="clear" onclick="limpar()">Limpar mês</button>
+
+<script>
+const VALOR = 19.60;
+const JACIRA = "Jacira Miranda";
+const LIMITE = new Date(2026,11,31);
+
+const nomes = [
+"Alexsandro Teles","Aline Goes","Ana Paula Ribeiro","Andréia Dias","Angelo Miranda",
+"Celina Rosa","Cilene Queiroz","Cláudio Matos","Dailza Araújo","Diego Barbosa",
+"Editânia","Eduardo Oliveira","Emilson Barbosa","Evanice Santos",
+"Fabiano Souza","Fátima Carvalho","Gersenildo França","Graça Teixeira",
+"Helena Argolo","Isabela Santana","Ivana Guimarães","Jacira Miranda",
+"Jadson Miranda","Jaílson Souza","Janmily Mendes","Joseane Oliveira",
+"Juliana Oliveira","Leandro Nascimento","Lúcia Argolo","Luciana Falcão",
+"Luciene Oliveira","Manoel Messias","Manuela Rios","Marco Costa",
+"Maria Espinheira","Mauro Kleber","Mônica Mota","Mônica Pereira",
+"Patrícia Reis","Reijane Silva","Renata Conceíção","Rodrigo Müller","Rose Santana",
+"Simone Cunha","Sueli Ramos","Suely Santos","Tatiana Nascimento",
+"Vânia Carvalho","Vilma Gravata","Vilma Patrícia","Wilson Dias"
+];
+
+const hoje = new Date();
+const chave = `pag_${hoje.getFullYear()}_${String(hoje.getMonth()+1).padStart(2,'0')}`;
+document.getElementById('mes').textContent =
+hoje.toLocaleString('pt-br',{month:'long',year:'numeric'});
+
+let estado = JSON.parse(localStorage.getItem(chave)) || {};
+const area = document.getElementById('checks');
+
+nomes.forEach(n => {
+  const l = document.createElement('label');
+  const c = document.createElement('input');
+  c.type='checkbox';
+  c.dataset.nome=n;
+
+  if (n===JACIRA && hoje<=LIMITE) {
+    c.checked=true;
+    estado[n]=true;
+  } else {
+    c.checked=!!estado[n];
+  }
+
+  c.onchange=atualizar;
+  l.appendChild(c);
+  l.append(n);
+  area.appendChild(l);
+});
+
+atualizar();
+
+function atualizar() {
+  const pagos=document.getElementById('pagos');
+  const pend=document.getElementById('pendentes');
+  pagos.innerHTML=pend.innerHTML='';
+  let c=0;
+
+  document.querySelectorAll('input[type=checkbox]').forEach(cb=>{
+    estado[cb.dataset.nome]=cb.checked;
+    if(cb.checked){
+      c++;
+      const li=document.createElement('li');
+      li.textContent=`${String(c).padStart(2,'0')} - ${cb.dataset.nome} - PG`;
+      li.className='pago';
+      pagos.appendChild(li);
+    } else {
+      const li=document.createElement('li');
+      li.textContent=cb.dataset.nome;
+      li.className='pendente';
+      pend.appendChild(li);
+    }
+  });
+
+  document.getElementById('qtd').textContent=String(c).padStart(2,'0');
+  document.getElementById('total').textContent=
+  `R$ ${(c*VALOR).toFixed(2).replace('.',',')}`;
+
+  localStorage.setItem(chave, JSON.stringify(estado));
+}
+
+function limpar(){
+  estado={};
+  atualizar();
+}
+
+function copiar(){
+  let t='COTA MENSAL\n\n';
+  document.querySelectorAll('#pagos li').forEach(li=>t+=li.textContent+'\n');
+  navigator.clipboard.writeText(t);
+  alert('Copiado');
+}
+</script>
+
+</body>
+</html>
