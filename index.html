@@ -2,66 +2,57 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>Controle de Pagamentos</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Controle de Pagamentos</title>
 
 <style>
 body {
-    font-family: Arial, sans-serif;
-    padding: 15px;
+  font-family: Arial, sans-serif;
+  padding: 15px;
 }
 .pago { color: green; }
 .pendente { color: red; }
+label { display: block; margin: 4px 0; }
 button {
-    margin: 10px 5px 0 0;
-    padding: 10px;
-    font-size: 16px;
-}
-label {
-    display: block;
+  margin: 10px 5px 0 0;
+  padding: 10px;
+  font-size: 16px;
 }
 </style>
 </head>
 
 <body>
 
+<!-- 🔒 LOGIN -->
 <script src="auth.js"></script>
 <script>checkAuth()</script>
 
 <h2>Controle de Pagamentos</h2>
-
-<pre id="infoPagamento"></pre>
+<button onclick="logout()">Sair</button>
 
 <hr>
 
-<h3>Pagos</h3>
-<ul id="listaPagos"></ul>
+<ul id="listaPagamentos"></ul>
 
-<p><strong>COTAS PAGAS:</strong> <span id="qtdPagos">00</span></p>
-<p><strong>TOTAL ARRECADADO:</strong> R$ <span id="total">0,00</span></p>
+<p>
+COTAS PAGAS: <strong><span id="cotasPagas">00</span></strong><br>
+TOTAL ARRECADADO: <strong>R$ <span id="totalArrecadado">0,00</span></strong>
+</p>
 
-<h3 id="tituloPendentes"></h3>
+<p id="mensagemCotasPendentes"></p>
 <ul id="listaPendentes"></ul>
 
+<button onclick="copiarResultados()">📋 Copiar para WhatsApp</button>
+
 <hr>
 
-<h3>Marcar Pagamentos</h3>
 <div id="checkboxes"></div>
 
-<button onclick="copiarResultados()">📋 Copiar para WhatsApp</button>
-<button onclick="logout()">🚪 Sair</button>
-
 <script>
-// ================= CONFIGURAÇÕES =================
-const VALOR_COTA = 19.60;
-const PIX = "71999989616";
+// ================= CONFIG =================
+const VALOR_COTA = 19.6;
 
-const hoje = new Date();
-const mesAtual = hoje.toISOString().slice(0, 7); // YYYY-MM
-const mesNome = hoje.toLocaleString('pt-br', { month: 'long' });
-const mesNumero = hoje.toLocaleString('pt-br', { month: '2-digit' });
-
-// ================= LISTA COMPLETA =================
+// nomes embutidos
 const nomes = [
 "Alexsandro Teles","Aline Goes","Ana Paula Ribeiro","Andréia Dias","Angelo Miranda",
 "Celina Rosa","Cilene Queiroz","Cláudio Matos","Dailza Araújo","Diego Barbosa",
@@ -69,7 +60,7 @@ const nomes = [
 "Fabiano Souza","Fátima Carvalho","Gersenildo França","Graça Teixeira",
 "Helena Argolo","Isabela Santana","Ivana Guimarães","Jacira Miranda",
 "Jadson Miranda","Jaílson Souza","Janmily Mendes","Joseane Oliveira",
-"Juliana Oliveira","Leandro Nascimento","Lúcia Argolo",
+"Juliana Oliveira","Leandro Nascimento","Lúcia Argolo","Luciana Falcão",
 "Luciene Oliveira","Manoel Messias","Manuela Rios","Marco Costa",
 "Maria Espinheira","Mauro Kleber","Mônica Mota","Mônica Pereira",
 "Patrícia Reis","Reijane Silva","Renata Conceíção","Rodrigo Müller","Rose Santana",
@@ -77,151 +68,126 @@ const nomes = [
 "Vânia Carvalho","Vilma Gravata","Vilma Patrícia","Wilson Dias"
 ];
 
-const dados = nomes.map(nome => ({
-    nome: nome,
-    whatsapp: "@" + nome
-}));
-
-// ================= PAGAMENTO FIXO =================
-const pagosAte = {
-    "Jacira Miranda": "2026-12"
-};
-
-// ================= STORAGE =================
-function carregarPagamentos() {
-    return JSON.parse(localStorage.getItem("pagamentos") || "{}");
-}
-
-function salvarPagamentos(p) {
-    localStorage.setItem("pagamentos", JSON.stringify(p));
-}
-
-// ================= REGRAS =================
-function estaPago(nome) {
-    if (pagosAte[nome] && pagosAte[nome] >= mesAtual) return true;
-    const p = carregarPagamentos();
-    return p[nome]?.[mesAtual] === true;
-}
-
-function togglePagamento(nome, checked) {
-    const p = carregarPagamentos();
-    if (!p[nome]) p[nome] = {};
-    p[nome][mesAtual] = checked;
-    salvarPagamentos(p);
-    atualizar();
-}
-
-// ================= ATUALIZA TELA =================
-function atualizar() {
-    const listaPagos = document.getElementById("listaPagos");
-    const listaPendentes = document.getElementById("listaPendentes");
-    const qtdPagos = document.getElementById("qtdPagos");
-    const total = document.getElementById("total");
-    const tituloPendentes = document.getElementById("tituloPendentes");
-
-    listaPagos.innerHTML = "";
-    listaPendentes.innerHTML = "";
-
-    let pagos = 0;
-    let pendentes = [];
-
-    dados.forEach(pessoa => {
-        if (estaPago(pessoa.nome)) {
-            pagos++;
-            const li = document.createElement("li");
-            li.className = "pago";
-            li.textContent = `${String(pagos).padStart(2,"0")} - ${pessoa.nome} - *PG*`;
-            listaPagos.appendChild(li);
-        } else {
-            pendentes.push(pessoa.whatsapp);
-        }
-    });
-
-    qtdPagos.textContent = String(pagos).padStart(2,"0");
-    total.textContent = (pagos * VALOR_COTA).toFixed(2).replace(".", ",");
-
-    if (pendentes.length) {
-        tituloPendentes.textContent = "COTAS PENDENTES:";
-        pendentes.forEach(p => {
-            const li = document.createElement("li");
-            li.className = "pendente";
-            li.textContent = p;
-            listaPendentes.appendChild(li);
-        });
-    } else {
-        tituloPendentes.textContent = "";
-    }
-}
-
-// ================= COPIAR WHATSAPP =================
-function copiarResultados() {
-let texto =
-`*VALOR DA CONTA MENSAL: R$ 19,60* - Para o mês de ${mesNome}
-
-*PAGAMENTO ACEITO ATÉ O DIA 09/${mesNumero}*
-*PIX:* ${PIX}
-01 Jogo de 09 dezenas na Mega Sena e 01 jogo de 17 dezenas na Lotofácil
-
-`;
-
-let pagos = 0;
-let pendentes = [];
-
-dados.forEach(pessoa => {
-    if (estaPago(pessoa.nome)) {
-        pagos++;
-        texto += `${String(pagos).padStart(2,"0")} - ${pessoa.nome} - *PG*\n`;
-    } else {
-        pendentes.push(pessoa.whatsapp);
-    }
-});
-
-texto += `\n*COTAS PAGAS:* ${pagos}`;
-texto += `\n*TOTAL ARRECADADO:* R$ ${(pagos * VALOR_COTA).toFixed(2).replace(".", ",")}\n`;
-
-if (pendentes.length) {
-    texto += `\n*COTAS PENDENTES:*\n`;
-    pendentes.forEach(p => texto += `${p}\n`);
-}
-
-navigator.clipboard.writeText(texto);
-alert("Texto copiado no padrão WhatsApp ✔️");
-}
-
-// ================= LOGOUT =================
-function logout() {
-    localStorage.removeItem("logado");
-    location.href = "login.html";
-}
+// ================= MÊS AUTOMÁTICO =================
+const hoje = new Date();
+const MES_ATUAL = hoje.getFullYear() + "-" + String(hoje.getMonth()+1).padStart(2,"0");
+const STORAGE_KEY = "pagamentos_" + MES_ATUAL;
 
 // ================= CHECKBOXES =================
-const div = document.getElementById("checkboxes");
+const divCheckboxes = document.getElementById("checkboxes");
 
-dados.forEach(pessoa => {
-    const label = document.createElement("label");
-    const cb = document.createElement("input");
-
-    cb.type = "checkbox";
-    cb.checked = estaPago(pessoa.nome);
-    cb.onchange = () => togglePagamento(pessoa.nome, cb.checked);
-
-    label.appendChild(cb);
-    label.append(" " + pessoa.nome);
-
-    div.appendChild(label);
+nomes.forEach(nome => {
+  const label = document.createElement("label");
+  label.innerHTML = `<input type="checkbox" data-nome="${nome}"> ${nome}`;
+  divCheckboxes.appendChild(label);
 });
 
-// ================= TEXTO FIXO VISUAL =================
-document.getElementById("infoPagamento").innerText =
-`VALOR DA CONTA MENSAL: R$ 19,60 - Para o mês de ${mesNome}
-PAGAMENTO ACEITO ATÉ O DIA 09/${mesNumero}
-PIX: ${PIX}
-01 Jogo de 09 dezenas na Mega Sena e 01 jogo de 17 dezenas na Lotofácil`;
+function salvarEstado() {
+  const estado = {};
+  document.querySelectorAll('input[type="checkbox"]').forEach(cb=>{
+    estado[cb.dataset.nome] = cb.checked;
+  });
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(estado));
+}
 
-atualizar();
+function carregarEstado() {
+  const estado = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+  document.querySelectorAll('input[type="checkbox"]').forEach(cb=>{
+    cb.checked = estado[cb.dataset.nome] || false;
+  });
+}
+
+document.querySelectorAll('input[type="checkbox"]').forEach(cb=>{
+  cb.addEventListener("change", atualizarListas);
+});
+
+// ================= ATUALIZAR LISTAS =================
+function atualizarListas() {
+  const listaPagos = document.getElementById("listaPagamentos");
+  const listaPend = document.getElementById("listaPendentes");
+
+  listaPagos.innerHTML = "";
+  listaPend.innerHTML = "";
+
+  let cont = 0;
+
+  document.querySelectorAll('input[type="checkbox"]').forEach(cb=>{
+    if (cb.checked) {
+      cont++;
+      const li = document.createElement("li");
+      li.className = "pago";
+      li.textContent = String(cont).padStart(2,"0")+" - "+cb.dataset.nome+" - *PG*";
+      listaPagos.appendChild(li);
+    } else {
+      const li = document.createElement("li");
+      li.className = "pendente";
+      li.textContent = cb.dataset.nome;
+      listaPend.appendChild(li);
+    }
+  });
+
+  document.getElementById("cotasPagas").textContent = cont;
+  document.getElementById("totalArrecadado").textContent =
+    (cont * VALOR_COTA).toFixed(2).replace(".",",");
+
+  document.getElementById("mensagemCotasPendentes").textContent =
+    "COTAS PENDENTES: " + (nomes.length - cont);
+
+  salvarEstado();
+}
+
+// ================= WHATSAPP =================
+function copiarResultados() {
+  const mesNome = hoje.toLocaleString("pt-br",{month:"long"}).toUpperCase();
+  const mesNum = String(hoje.getMonth()+1).padStart(2,"0");
+
+  const pagos = document.getElementById("listaPagamentos").children;
+  const pend = document.getElementById("listaPendentes").children;
+
+  const cotasPagas = pagos.length;
+  const pendentes = nomes.length - cotasPagas;
+  const usarArroba = pendentes <= 10;
+
+  let txt = 
+`🎯 *COTA MENSAL – MEGA-SENA + LOTOFÁCIL*
+
+💰 *VALOR:* R$ 19,60
+📅 *MÊS:* ${mesNome}
+⏰ *PAGAMENTO ATÉ:* 09/${mesNum}
+
+🔑 *PIX:* 71999989616
+
+🎰 01 Jogo de *09 dezenas* na *Mega-Sena*
+🎰 01 Jogo de *17 dezenas* na *Lotofácil*
+
+━━━━━━━━━━━━━━
+✅ *COTAS PAGAS:* ${cotasPagas}
+💵 *TOTAL ARRECADADO:* R$ ${(cotasPagas*VALOR_COTA).toFixed(2).replace(".",",")}
+━━━━━━━━━━━━━━
+
+📋 *PAGOS*
+`;
+
+  for (let i=0;i<pagos.length;i++) {
+    txt += pagos[i].textContent+"\n";
+  }
+
+  txt += `\n⚠️ *COTAS PENDENTES:* ${pendentes}\n`;
+
+  if (pendentes > 0 && usarArroba) txt += "👇 *ATENÇÃO*\n";
+
+  for (let j=0;j<pend.length;j++) {
+    txt += usarArroba ? "@"+pend[j].textContent+"\n" : pend[j].textContent+"\n";
+  }
+
+  navigator.clipboard.writeText(txt);
+  alert("Mensagem copiada para o WhatsApp");
+}
+
+// ================= START =================
+carregarEstado();
+atualizarListas();
 </script>
 
 </body>
 </html>
-
-
