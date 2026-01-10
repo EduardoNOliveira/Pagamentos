@@ -146,12 +146,14 @@ function copiarResultados() {
     texto += `${String(i + 1).padStart(2, "0")} - ${n} - *PG*\n`;
   });
 
-  texto += `\n⚠️ *COTAS PENDENTES:* ${pendentes.length}\n`;
-  if (usarArroba) texto += "👇 *ATENÇÃO*\n";
-
-  pendentes.forEach(n => {
-    texto += usarArroba ? `@${n}\n` : `${n}\n`;
-  });
+  // 🔥 SÓ MOSTRA PENDENTES SE EXISTIR
+  if (pendentes.length > 0) {
+    texto += `\n⚠️ *COTAS PENDENTES:* ${pendentes.length}\n`;
+    if (usarArroba) texto += "👇 *ATENÇÃO*\n";
+    pendentes.forEach(n => {
+      texto += usarArroba ? `@${n}\n` : `${n}\n`;
+    });
+  }
 
   navigator.clipboard.writeText(texto);
   alert("Texto copiado para o WhatsApp ✅");
