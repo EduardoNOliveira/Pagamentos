@@ -1,5 +1,5 @@
-<script>
-const USER = "admin";
+o<script>
+const USER = "Eduardo";
 const PASS_HASH = "c7a5a1e6c93bde91b2c90d4dbf8e1f08c60a8b2d92c8b4e4f5d3d6f8d9c3c2a1";
 
 async function sha256(text) {
