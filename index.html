@@ -267,6 +267,10 @@
   // Carregar estado do backend ao abrir a página + iniciar tempo real
   carregarDoServidor();
   iniciarListenerTempoReal();
+
+  // Reforço: faz checagem periódica a cada 5 segundos
+  // (caso o listener em tempo real seja limitado pelo navegador)
+  setInterval(carregarDoServidor, 5000);
   </script>
 
   <!-- BOTÃO FINAL -->
