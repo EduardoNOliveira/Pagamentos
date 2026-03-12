@@ -1,133 +1,208 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-<meta charset="UTF-8">
-<title>Controle de Pagamentos</title>
+  <meta charset="UTF-8">
+  <title>Controle de Pagamentos</title>
 
-<style>
-body {
-  font-family: Arial, sans-serif;
-  padding: 15px;
-}
-label {
-  display: block;
-  margin: 4px 0;
-}
-.pago {
-  color: green;
-  font-weight: bold;
-}
-button {
-  margin-top: 20px;
-  padding: 12px;
-  font-size: 16px;
-  width: 100%;
-}
-</style>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 15px;
+    }
+    label {
+      display: block;
+      margin: 4px 0;
+    }
+    .pago {
+      color: green;
+      font-weight: bold;
+    }
+    button {
+      margin-top: 20px;
+      padding: 12px;
+      font-size: 16px;
+      width: 100%;
+    }
+  </style>
 
-<script src="auth.js"></script>
-<script>
-checkAuth();
-</script>
+  <!-- Se você já tiver auth.js no seu projeto, mantenha -->
+  <!-- <script src="auth.js"></script> -->
+  <script>
+    // Se existir checkAuth() no seu projeto, descomente a linha abaixo
+    // checkAuth();
+  </script>
 </head>
 
 <body>
 
-<button onclick="logout()">Sair</button>
+  <button onclick="logout && logout()">Sair</button>
 
-<h2>Controle de Pagamentos</h2>
+  <h2>Controle de Pagamentos</h2>
 
-<script>
-// ================= DATA / MÊS =================
-const hoje = new Date();
-const MES_ATUAL = hoje.getFullYear() + "-" + String(hoje.getMonth() + 1).padStart(2, "0");
-const NOME_MES = hoje.toLocaleString("pt-br", { month: "long" }).toUpperCase();
-const STORAGE_KEY = "pagamentos_" + MES_ATUAL;
+  <script>
+  // ================= CONFIGURAÇÃO DE MÊS / ESTADO SYNC BACKEND =================
+  const hoje = new Date();
+  const MES_ATUAL = hoje.getFullYear() + "-" + String(hoje.getMonth() + 1).padStart(2, "0");
 
-// ================= NOMES =================
-const nomes = [
-"Alexsandro Teles","Aline Goes","Ana Paula Ribeiro","Andréia Dias","Angelo Miranda",
-"Celina Rosa","Cilene Queiroz","Cláudio Matos","Dailza Araújo","Diego Barbosa",
-"Editânia","Eduardo Oliveira","Emilson Barbosa","Evanice Santos",
-"Fabiano Souza","Fátima Carvalho","Gersenildo França","Graça Teixeira",
-"Helena Argolo","Isabela Santana","Ivana Guimarães","Jacira Miranda",
-"Jadson Miranda","Jaílson Souza","Janmily Mendes","Joseane Oliveira",
-"Juliana Oliveira","Leandro Nascimento","Lúcia Argolo",
-"Luciene Oliveira","Manoel Messias","Manuela Rios","Marco Costa",
-"Maria Espinheira","Mauro Kleber","Mônica Mota","Mônica Pereira",
-"Patrícia Reis","Reijane Silva","Rodrigo Müller","Rosa Oliveira","Rose Santana",
-"Simone Cunha","Sueli Ramos","Suely Santos","Tatiana Nascimento",
-"Vânia Carvalho","Vilma Gravata","Vilma Patrícia","Wilson Dias"
-];
+  // Estes valores serão preenchidos a partir do backend
+  let MES_REFERENCIA = MES_ATUAL;
+  let ESTADO_ATUAL = {}; // { "Nome Pessoa": true/false }
 
-// ================= PAGAMENTOS FIXOS =================
-const PAGAMENTOS_FIXOS = {
-  "Jacira Miranda": "2026-12"
-};
+  // Nome do mês de referência (vai ser recalculado depois de MES_REFERENCIA definido)
+  function nomeMesReferencia(mesReferencia) {
+    const [anoStr, mesStr] = mesReferencia.split("-");
+    const ano = Number(anoStr);
+    const mes = Number(mesStr);
+    return new Date(ano, mes - 1, 1)
+      .toLocaleString("pt-br", { month: "long" })
+      .toUpperCase();
+  }
 
-// ================= LISTA =================
-const divLista = document.createElement("div");
+  function numeroMesReferencia(mesReferencia) {
+    const [, mesStr] = mesReferencia.split("-");
+    return String(Number(mesStr)).padStart(2, "0");
+  }
 
-nomes.forEach(nome => {
-  const label = document.createElement("label");
-  const cb = document.createElement("input");
+  // ================= NOMES =================
+  const nomes = [
+    "Alexsandro Teles","Aline Goes","Ana Paula Ribeiro","Andréia Dias","Angelo Miranda",
+    "Celina Rosa","Cilene Queiroz","Cláudio Matos","Dailza Araújo","Diego Barbosa",
+    "Editânia","Eduardo Oliveira","Emilson Barbosa","Evanice Santos",
+    "Fabiano Souza","Fátima Carvalho","Gersenildo França","Graça Teixeira",
+    "Helena Argolo","Isabela Santana","Ivana Guimarães","Jacira Miranda",
+    "Jadson Miranda","Jaílson Souza","Janmily Mendes","Joseane Oliveira",
+    "Juliana Oliveira","Leandro Nascimento","Lúcia Argolo",
+    "Luciene Oliveira","Manoel Messias","Manuela Rios","Marco Costa",
+    "Maria Espinheira","Mauro Kleber","Mônica Mota","Mônica Pereira",
+    "Patrícia Reis","Reijane Silva","Rodrigo Müller","Rosa Oliveira","Rose Santana",
+    "Simone Cunha","Sueli Ramos","Suely Santos","Tatiana Nascimento",
+    "Vânia Carvalho","Vilma Gravata","Vilma Patrícia","Wilson Dias"
+  ];
 
-  cb.type = "checkbox";
-  cb.dataset.nome = nome;
-  cb.onchange = salvarEstado;
+  // ================= PAGAMENTOS FIXOS =================
+  const PAGAMENTOS_FIXOS = {
+    "Jacira Miranda": "2026-12"
+  };
 
-  label.appendChild(cb);
-  label.append(" " + nome);
-  divLista.appendChild(label);
-});
+  // ================= LISTA (CRIAÇÃO DOS CHECKBOXES) =================
+  const divLista = document.createElement("div");
 
-document.body.appendChild(divLista);
+  nomes.forEach(nome => {
+    const label = document.createElement("label");
+    const cb = document.createElement("input");
 
-// ================= ESTADO =================
-function salvarEstado() {
-  const estado = {};
-  document.querySelectorAll("input[type=checkbox]").forEach(cb => {
-    if (!cb.disabled) estado[cb.dataset.nome] = cb.checked;
+    cb.type = "checkbox";
+    cb.dataset.nome = nome;
+    cb.onchange = salvarEstado;
+
+    label.appendChild(cb);
+    label.append(" " + nome);
+    divLista.appendChild(label);
   });
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(estado));
-}
 
-function carregarEstado() {
-  const estado = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
-  document.querySelectorAll("input[type=checkbox]").forEach(cb => {
-    const nome = cb.dataset.nome;
+  document.body.appendChild(divLista);
 
-    if (PAGAMENTOS_FIXOS[nome] && MES_ATUAL <= PAGAMENTOS_FIXOS[nome]) {
-      cb.checked = true;
-      cb.disabled = true;
-      cb.parentElement.classList.add("pago");
-    } else {
-      cb.checked = estado[nome] || false;
-      cb.parentElement.classList.toggle("pago", cb.checked);
+  // ================= FUNÇÕES DE SYNC COM BACKEND =================
+
+  async function carregarDoServidor() {
+    try {
+      const resp = await fetch("/api/pagamentos-controle/ultimo", {
+        method: "GET",
+        headers: {
+          "Accept": "application/json"
+        },
+        credentials: "include"
+      });
+
+      if (!resp.ok) {
+        console.error("Erro ao buscar dados do servidor:", resp.status);
+        MES_REFERENCIA = MES_ATUAL;
+        ESTADO_ATUAL = {};
+        aplicarEstado();
+        return;
+      }
+
+      const data = await resp.json(); // { mes, estado }
+
+      if (data && data.mes && data.estado) {
+        MES_REFERENCIA = data.mes;
+        ESTADO_ATUAL = data.estado || {};
+      } else {
+        MES_REFERENCIA = MES_ATUAL;
+        ESTADO_ATUAL = {};
+      }
+    } catch (e) {
+      console.error("Erro ao carregar do servidor:", e);
+      MES_REFERENCIA = MES_ATUAL;
+      ESTADO_ATUAL = {};
+    } finally {
+      aplicarEstado();
     }
-  });
-}
-carregarEstado();
+  }
 
-// ================= COPIAR WHATSAPP =================
-function copiarResultados() {
-  const VALOR = 19.60;
-  let pagos = [];
-  let pendentes = [];
+  function aplicarEstado() {
+    document.querySelectorAll("input[type=checkbox]").forEach(cb => {
+      const nome = cb.dataset.nome;
 
-  document.querySelectorAll("input[type=checkbox]").forEach(cb => {
-    cb.checked ? pagos.push(cb.dataset.nome) : pendentes.push(cb.dataset.nome);
-  });
+      if (PAGAMENTOS_FIXOS[nome] && MES_REFERENCIA <= PAGAMENTOS_FIXOS[nome]) {
+        cb.checked = true;
+        cb.disabled = true;
+        cb.parentElement.classList.add("pago");
+      } else {
+        cb.checked = !!ESTADO_ATUAL[nome];
+        cb.parentElement.classList.toggle("pago", cb.checked);
+      }
+    });
+  }
 
-  const usarArroba = pendentes.length <= 10;
-  const totalArrecadado = (pagos.length * VALOR).toFixed(2).replace(".", ",");
+  async function salvarEstado() {
+    const estado = {};
+    document.querySelectorAll("input[type=checkbox]").forEach(cb => {
+      if (!cb.disabled) estado[cb.dataset.nome] = cb.checked;
+    });
 
-  let texto =
+    ESTADO_ATUAL = estado;
+
+    try {
+      await fetch("/api/pagamentos-controle/ultimo", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          mes: MES_REFERENCIA,
+          estado: ESTADO_ATUAL
+        })
+      });
+    } catch (e) {
+      console.error("Erro ao salvar no servidor:", e);
+    }
+  }
+
+  // ================= COPIAR WHATSAPP =================
+  function copiarResultados() {
+    const VALOR = 19.60;
+    let pagos = [];
+    let pendentes = [];
+
+    document.querySelectorAll("input[type=checkbox]").forEach(cb => {
+      cb.checked ? pagos.push(cb.dataset.nome) : pendentes.push(cb.dataset.nome);
+    });
+
+    const usarArroba = pendentes.length <= 10;
+    const totalArrecadado = (pagos.length * VALOR).toFixed(2).replace(".", ",");
+
+    const NOME_MES = nomeMesReferencia(MES_REFERENCIA);
+    const MES_NUMERO = numeroMesReferencia(MES_REFERENCIA);
+
+    let texto =
 `🎯 *COTA MENSAL – MEGA-SENA + LOTOFÁCIL*
 
 💰 *VALOR:* R$ 19,60
 📅 *MÊS:* ${NOME_MES}
-⏰ *PAGAMENTO ATÉ:* 09/${String(hoje.getMonth() + 1).padStart(2, "0")}
+⏰ *PAGAMENTO ATÉ:* 09/${MES_NUMERO}
 
 🔑 *PIX:* 71999989616
 
@@ -142,27 +217,32 @@ function copiarResultados() {
 📋 *PAGOS*
 `;
 
-  pagos.forEach((n, i) => {
-    texto += `${String(i + 1).padStart(2, "0")} - ${n} - *PG*\n`;
-  });
-
-  // 🔥 SÓ MOSTRA PENDENTES SE EXISTIR
-  if (pendentes.length > 0) {
-    texto += `\n⚠️ *COTAS PENDENTES:* ${pendentes.length}\n`;
-    if (usarArroba) texto += "👇 *ATENÇÃO*\n";
-    pendentes.forEach(n => {
-      texto += usarArroba ? `@${n}\n` : `${n}\n`;
+    pagos.forEach((n, i) => {
+      texto += `${String(i + 1).padStart(2, "0")} - ${n} - *PG*\n`;
     });
+
+    if (pendentes.length > 0) {
+      texto += `\n⚠️ *COTAS PENDENTES:* ${pendentes.length}\n`;
+      if (usarArroba) texto += "👇 *ATENÇÃO*\n";
+      pendentes.forEach(n => {
+        texto += usarArroba ? `@${n}\n` : `${n}\n`;
+      });
+    }
+
+    navigator.clipboard.writeText(texto);
+    alert("Texto copiado para o WhatsApp ✅");
   }
 
-  navigator.clipboard.writeText(texto);
-  alert("Texto copiado para o WhatsApp ✅");
-}
-</script>
+  // Carregar estado do backend ao abrir a página
+  carregarDoServidor();
+  </script>
 
-<!-- BOTÃO FINAL -->
-<button onclick="copiarResultados()">Copiar para WhatsApp</button>
+  <!-- BOTÃO FINAL -->
+  <button onclick="copiarResultados()">Copiar para WhatsApp</button>
 
 </body>
 </html>
+
+
+
 
