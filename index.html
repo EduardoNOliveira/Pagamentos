@@ -126,9 +126,33 @@
 
   // ================= FUNÇÕES DE SYNC COM BACKEND =================
 
+  // Observa em tempo real o documento "ultimo"
+  function iniciarListenerTempoReal() {
+    const docRef = db.collection("pagamentosControle").doc("ultimo");
+
+    docRef.onSnapshot((snap) => {
+      if (snap.exists) {
+        const data = snap.data(); // { mes, estado }
+        if (data && data.mes && data.estado) {
+          MES_REFERENCIA = data.mes;
+          ESTADO_ATUAL = data.estado || {};
+        } else {
+          MES_REFERENCIA = MES_ATUAL;
+          ESTADO_ATUAL = {};
+        }
+      } else {
+        MES_REFERENCIA = MES_ATUAL;
+        ESTADO_ATUAL = {};
+      }
+      aplicarEstado();
+    }, (e) => {
+      console.error("Erro no listener em tempo real:", e);
+    });
+  }
+
+  // Carregamento inicial (caso queira garantir um primeiro estado)
   async function carregarDoServidor() {
     try {
-      // Lê sempre o mesmo documento "ultimo" no Firestore
       const docRef = db.collection("pagamentosControle").doc("ultimo");
       const snap = await docRef.get();
 
@@ -142,7 +166,6 @@
           ESTADO_ATUAL = {};
         }
       } else {
-        // Se ainda não existir nada no banco, começa do mês atual
         MES_REFERENCIA = MES_ATUAL;
         ESTADO_ATUAL = {};
       }
@@ -241,8 +264,9 @@
     alert("Texto copiado para o WhatsApp ✅");
   }
 
-  // Carregar estado do backend ao abrir a página
+  // Carregar estado do backend ao abrir a página + iniciar tempo real
   carregarDoServidor();
+  iniciarListenerTempoReal();
   </script>
 
   <!-- BOTÃO FINAL -->
