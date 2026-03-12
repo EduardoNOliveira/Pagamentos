@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Controle de Pagamentos</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 15px;
+    }
+    label {
+      display: block;
+      margin: 4px 0;
+    }
+    .pago {
+      color: green;
+      font-weight: bold;
+    }
+    button {
+      margin-top: 20px;
+      padding: 12px;
+      font-size: 16px;
+      width: 100%;
+    }
+  </style>
+
+  <!-- Se você já tiver auth.js no seu projeto, mantenha -->
+  <!-- <script src="auth.js"></script> -->
+
+  <!-- Firebase (para sincronizar entre celular e PC) -->
+  <!-- 1) Crie um projeto no Firebase em https://console.firebase.google.com -->
+  <!-- 2) Adicione um app Web e copie o firebaseConfig para baixo -->
+  <!-- 3) Habilite o Firestore Database no modo production ou test -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script>
+    // Config do seu projeto Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyA4jZeE9qpW50GLsjohuVDMIjOmC9Lyig0",
+      authDomain: "pagamentos-b0709.firebaseapp.com",
+      projectId: "pagamentos-b0709",
+      storageBucket: "pagamentos-b0709.firebasestorage.app",
+      messagingSenderId: "146576431226",
+      appId: "1:146576431226:web:8c4f2221281c5a5a5fc3c3",
+      measurementId: "G-5BF79SPNQN"
+    };
+
+    // Inicializa Firebase (não mexer depois de configurar)
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // Se existir checkAuth() no seu projeto, descomente a linha abaixo
+    // checkAuth();
+  </script>
+</head>
+
+<body>
+
+  <button onclick="logout && logout()">Sair</button>
+
+  <h2>Controle de Pagamentos</h2>
+
+  <script>
+  // ================= CONFIGURAÇÃO DE MÊS / ESTADO SYNC BACKEND =================
+  const hoje = new Date();
+  const MES_ATUAL = hoje.getFullYear() + "-" + String(hoje.getMonth() + 1).padStart(2, "0");
+
+  // Estes valores serão preenchidos a partir do backend
+  let MES_REFERENCIA = MES_ATUAL;
+  let ESTADO_ATUAL = {}; // { "Nome Pessoa": true/false }
+
+  // Nome do mês de referência (vai ser recalculado depois de MES_REFERENCIA definido)
+  function nomeMesReferencia(mesReferencia) {
+    const [anoStr, mesStr] = mesReferencia.split("-");
+    const ano = Number(anoStr);
+    const mes = Number(mesStr);
+    return new Date(ano, mes - 1, 1)
+      .toLocaleString("pt-br", { month: "long" })
+      .toUpperCase();
+  }
+
+  function numeroMesReferencia(mesReferencia) {
+    const [, mesStr] = mesReferencia.split("-");
+    return String(Number(mesStr)).padStart(2, "0");
+  }
+
+  // ================= NOMES =================
+  const nomes = [
+    "Alexsandro Teles","Aline Goes","Ana Paula Ribeiro","Andréia Dias","Angelo Miranda",
+    "Celina Rosa","Cilene Queiroz","Cláudio Matos","Dailza Araújo","Diego Barbosa",
+    "Editânia","Eduardo Oliveira","Emilson Barbosa","Evanice Santos",
+    "Fabiano Souza","Fátima Carvalho","Gersenildo França","Graça Teixeira",
+    "Helena Argolo","Isabela Santana","Ivana Guimarães","Jacira Miranda",
+    "Jadson Miranda","Jaílson Souza","Janmily Mendes","Joseane Oliveira",
+    "Juliana Oliveira","Leandro Nascimento","Lúcia Argolo",
+    "Luciene Oliveira","Manoel Messias","Manuela Rios","Marco Costa",
+    "Maria Espinheira","Mauro Kleber","Mônica Mota","Mônica Pereira",
+    "Patrícia Reis","Reijane Silva","Rodrigo Müller","Rosa Oliveira","Rose Santana",
+    "Simone Cunha","Sueli Ramos","Suely Santos","Tatiana Nascimento",
+    "Vânia Carvalho","Vilma Gravata","Vilma Patrícia","Wilson Dias"
+  ];
+
+  // ================= PAGAMENTOS FIXOS =================
+  const PAGAMENTOS_FIXOS = {
+    "Jacira Miranda": "2026-12"
+  };
+
+  // ================= LISTA (CRIAÇÃO DOS CHECKBOXES) =================
+  const divLista = document.createElement("div");
+
+  nomes.forEach(nome => {
+    const label = document.createElement("label");
+    const cb = document.createElement("input");
+
+    cb.type = "checkbox";
+    cb.dataset.nome = nome;
+    cb.onchange = salvarEstado;
+
+    label.appendChild(cb);
+    label.append(" " + nome);
+    divLista.appendChild(label);
+  });
+
+  document.body.appendChild(divLista);
+
+  // ================= FUNÇÕES DE SYNC COM BACKEND =================
+
+  async function carregarDoServidor() {
+    try {
+      // Lê sempre o mesmo documento "ultimo" no Firestore
+      const docRef = db.collection("pagamentosControle").doc("ultimo");
+      const snap = await docRef.get();
+
+      if (snap.exists) {
+        const data = snap.data(); // { mes, estado }
+        if (data && data.mes && data.estado) {
+          MES_REFERENCIA = data.mes;
+          ESTADO_ATUAL = data.estado || {};
+        } else {
+          MES_REFERENCIA = MES_ATUAL;
+          ESTADO_ATUAL = {};
+        }
+      } else {
+        // Se ainda não existir nada no banco, começa do mês atual
+        MES_REFERENCIA = MES_ATUAL;
+        ESTADO_ATUAL = {};
+      }
+    } catch (e) {
+      console.error("Erro ao carregar do servidor:", e);
+      MES_REFERENCIA = MES_ATUAL;
+      ESTADO_ATUAL = {};
+    } finally {
+      aplicarEstado();
+    }
+  }
+
+  function aplicarEstado() {
+    document.querySelectorAll("input[type=checkbox]").forEach(cb => {
+      const nome = cb.dataset.nome;
+
+      if (PAGAMENTOS_FIXOS[nome] && MES_REFERENCIA <= PAGAMENTOS_FIXOS[nome]) {
+        cb.checked = true;
+        cb.disabled = true;
+        cb.parentElement.classList.add("pago");
+      } else {
+        cb.checked = !!ESTADO_ATUAL[nome];
+        cb.parentElement.classList.toggle("pago", cb.checked);
+      }
+    });
+  }
+
+  async function salvarEstado() {
+    const estado = {};
+    document.querySelectorAll("input[type=checkbox]").forEach(cb => {
+      if (!cb.disabled) estado[cb.dataset.nome] = cb.checked;
+    });
+
+    ESTADO_ATUAL = estado;
+
+    try {
+      const docRef = db.collection("pagamentosControle").doc("ultimo");
+      await docRef.set({
+        mes: MES_REFERENCIA,
+        estado: ESTADO_ATUAL
+      });
+    } catch (e) {
+      console.error("Erro ao salvar no servidor:", e);
+    }
+  }
+
+  // ================= COPIAR WHATSAPP =================
+  function copiarResultados() {
+    const VALOR = 19.60;
+    let pagos = [];
+    let pendentes = [];
+
+    document.querySelectorAll("input[type=checkbox]").forEach(cb => {
+      cb.checked ? pagos.push(cb.dataset.nome) : pendentes.push(cb.dataset.nome);
+    });
+
+    const usarArroba = pendentes.length <= 10;
+    const totalArrecadado = (pagos.length * VALOR).toFixed(2).replace(".", ",");
+
+    const NOME_MES = nomeMesReferencia(MES_REFERENCIA);
+    const MES_NUMERO = numeroMesReferencia(MES_REFERENCIA);
+
+    let texto =
+`🎯 *COTA MENSAL – MEGA-SENA + LOTOFÁCIL*
+
+💰 *VALOR:* R$ 19,60
+📅 *MÊS:* ${NOME_MES}
+⏰ *PAGAMENTO ATÉ:* 09/${MES_NUMERO}
+
+🔑 *PIX:* 71999989616
+
+🎰 01 Jogo de *09 dezenas* na *Mega-Sena*
+🎰 01 Jogo de *17 dezenas* na *Lotofácil*
+
+━━━━━━━━━━━━━━
+✅ *COTAS PAGAS:* ${pagos.length}
+💵 *TOTAL ARRECADADO:* R$ ${totalArrecadado}
+━━━━━━━━━━━━━━
+
+📋 *PAGOS*
+`;
+
+    pagos.forEach((n, i) => {
+      texto += `${String(i + 1).padStart(2, "0")} - ${n} - *PG*\n`;
+    });
+
+    if (pendentes.length > 0) {
+      texto += `\n⚠️ *COTAS PENDENTES:* ${pendentes.length}\n`;
+      if (usarArroba) texto += "👇 *ATENÇÃO*\n";
+      pendentes.forEach(n => {
+        texto += usarArroba ? `@${n}\n` : `${n}\n`;
+      });
+    }
+
+    navigator.clipboard.writeText(texto);
+    alert("Texto copiado para o WhatsApp ✅");
+  }
+
+  // Carregar estado do backend ao abrir a página
+  carregarDoServidor();
+  </script>
+
+  <!-- BOTÃO FINAL -->
+  <button onclick="copiarResultados()">Copiar para WhatsApp</button>
+
+</body>
+</html>
+
+
+
+
