@@ -1,4 +1,337 @@
-<!DOCTYPE html>
+<script>
+  const firebaseConfig = {
+    apiKey: "SUA_API_KEY",
+    authDomain: "SEU_AUTH_DOMAIN",
+    projectId: "SEU_PROJECT_ID",
+    storageBucket: "SEU_STORAGE_BUCKET",
+    messagingSenderId: "SEU_MESSAGING_SENDER_ID",
+    appId: "SEU_APP_ID"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  const VALOR_COTA = 19.60;
+
+  const hoje = new Date();
+  const MES_ATUAL = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, "0")}`;
+
+  let MES_REFERENCIA = MES_ATUAL;
+  let ESTADO_ATUAL = {};
+  let intervaloRecarga = null;
+
+  const nomes = [
+    "Alexsandro Teles","Aline Goes","Ana Paula Ribeiro","Andréia Dias","Angelo Miranda",
+    "Celina Rosa","Cilene Queiroz","Cláudio Matos","Dailza Araújo","Diego Barbosa",
+    "Editânia","Eduardo Oliveira","Emilson Barbosa","Evanice Santos",
+    "Fabiano Souza","Fátima Carvalho","Gersenildo França","Graça Teixeira",
+    "Helena Argolo","Isabela Santana","Ivana Guimarães","Jacira Miranda",
+    "Jadson Miranda","Jaílson Souza","Janmily Mendes","Joseane Oliveira",
+    "Juliana Oliveira","Leandro Nascimento","Lúcia Argolo",
+    "Luciene Oliveira","Manoel Messias","Manuela Rios","Marco Costa",
+    "Maria Espinheira","Mauro Kleber","Mônica Mota","Mônica Pereira",
+    "Patrícia Reis","Reijane Silva","Rodrigo Müller","Rosa Oliveira","Rose Santana",
+    "Simone Cunha","Sueli Ramos","Suely Santos","Tatiana Nascimento",
+    "Vânia Carvalho","Vilma Gravata","Vilma Patrícia","Wilson Dias"
+  ];
+
+  const PAGAMENTOS_FIXOS = {
+    "Jacira Miranda": "2026-12"
+  };
+
+  const lista = document.getElementById("lista");
+  const busca = document.getElementById("busca");
+  const btnCopiar = document.getElementById("btnCopiar");
+  const btnSair = document.getElementById("btnSair");
+
+  const totalPagosEl = document.getElementById("totalPagos");
+  const totalPendentesEl = document.getElementById("totalPendentes");
+  const totalArrecadadoEl = document.getElementById("totalArrecadado");
+  const mesReferenciaTelaEl = document.getElementById("mesReferenciaTela");
+
+  function nomeMesReferencia(mesReferencia) {
+    const [anoStr, mesStr] = mesReferencia.split("-");
+    const ano = Number(anoStr);
+    const mes = Number(mesStr);
+
+    return new Date(ano, mes - 1, 1)
+      .toLocaleString("pt-BR", { month: "long", year: "numeric" })
+      .toUpperCase();
+  }
+
+  function numeroMesReferencia(mesReferencia) {
+    const [, mesStr] = mesReferencia.split("-");
+    return String(Number(mesStr)).padStart(2, "0");
+  }
+
+  function formatarMoeda(valor) {
+    return valor.toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL"
+    });
+  }
+
+  function criarLista() {
+    lista.innerHTML = "";
+
+    nomes.forEach(nome => {
+      const item = document.createElement("div");
+      item.className = "item";
+      item.dataset.nome = nome.toLowerCase();
+
+      const info = document.createElement("div");
+      info.className = "info-pessoa";
+
+      const ladoEsquerdo = document.createElement("div");
+      ladoEsquerdo.style.display = "flex";
+      ladoEsquerdo.style.alignItems = "center";
+      ladoEsquerdo.style.gap = "12px";
+
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.dataset.nome = nome;
+      checkbox.addEventListener("change", salvarEstado);
+
+      const nomeEl = document.createElement("span");
+      nomeEl.className = "nome";
+      nomeEl.textContent = nome;
+
+      ladoEsquerdo.appendChild(checkbox);
+      ladoEsquerdo.appendChild(nomeEl);
+
+      const status = document.createElement("span");
+      status.className = "status pendente";
+      status.textContent = "PENDENTE";
+
+      info.appendChild(ladoEsquerdo);
+      info.appendChild(status);
+
+      item.appendChild(info);
+      lista.appendChild(item);
+    });
+  }
+
+  function atualizarResumo() {
+    const checkboxes = [...document.querySelectorAll('input[type="checkbox"]')];
+    const pagos = checkboxes.filter(cb => cb.checked).length;
+    const pendentes = checkboxes.length - pagos;
+    const total = pagos * VALOR_COTA;
+
+    totalPagosEl.textContent = pagos;
+    totalPendentesEl.textContent = pendentes;
+    totalArrecadadoEl.textContent = formatarMoeda(total);
+    mesReferenciaTelaEl.textContent = nomeMesReferencia(MES_REFERENCIA);
+  }
+
+  function aplicarEstado() {
+    document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+      const nome = cb.dataset.nome;
+      const item = cb.closest(".item");
+      const nomeEl = item.querySelector(".nome");
+      const status = item.querySelector(".status");
+
+      if (PAGAMENTOS_FIXOS[nome] && MES_REFERENCIA <= PAGAMENTOS_FIXOS[nome]) {
+        cb.checked = true;
+        cb.disabled = true;
+      } else {
+        cb.disabled = false;
+        cb.checked = !!ESTADO_ATUAL[nome];
+      }
+
+      if (cb.checked) {
+        item.classList.add("pago");
+        status.className = "status pago";
+        status.textContent = "PAGO";
+      } else {
+        item.classList.remove("pago");
+        status.className = "status pendente";
+        status.textContent = "PENDENTE";
+      }
+    });
+
+    atualizarResumo();
+    aplicarBusca();
+  }
+
+  async function carregarDoServidor() {
+    try {
+      const docRef = db.collection("pagamentosControle").doc("ultimo");
+
+      const snap = await docRef.get({ source: "server" });
+
+      if (snap.exists) {
+        const data = snap.data();
+
+        if (data && data.mes && data.estado) {
+          MES_REFERENCIA = data.mes;
+          ESTADO_ATUAL = data.estado || {};
+        } else {
+          MES_REFERENCIA = MES_ATUAL;
+          ESTADO_ATUAL = {};
+        }
+      } else {
+        MES_REFERENCIA = MES_ATUAL;
+        ESTADO_ATUAL = {};
+      }
+
+      aplicarEstado();
+    } catch (erro) {
+      console.error("Erro ao carregar do servidor:", erro);
+    }
+  }
+
+  async function salvarEstado() {
+    const estado = {};
+
+    document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+      if (!cb.disabled) {
+        estado[cb.dataset.nome] = cb.checked;
+      }
+    });
+
+    ESTADO_ATUAL = estado;
+    aplicarEstado();
+
+    try {
+      const docRef = db.collection("pagamentosControle").doc("ultimo");
+      await docRef.set({
+        mes: MES_REFERENCIA,
+        estado: ESTADO_ATUAL
+      });
+    } catch (erro) {
+      console.error("Erro ao salvar no servidor:", erro);
+      alert("Erro ao salvar no Firebase.");
+    }
+  }
+
+  function iniciarListenerTempoReal() {
+    const docRef = db.collection("pagamentosControle").doc("ultimo");
+
+    docRef.onSnapshot(
+      (snap) => {
+        if (snap.exists) {
+          const data = snap.data();
+
+          if (data && data.mes && data.estado) {
+            MES_REFERENCIA = data.mes;
+            ESTADO_ATUAL = data.estado || {};
+          } else {
+            MES_REFERENCIA = MES_ATUAL;
+            ESTADO_ATUAL = {};
+          }
+        } else {
+          MES_REFERENCIA = MES_ATUAL;
+          ESTADO_ATUAL = {};
+        }
+
+        aplicarEstado();
+      },
+      (erro) => {
+        console.error("Erro no listener em tempo real:", erro);
+      }
+    );
+  }
+
+  function iniciarRecargaPeriodica() {
+    if (intervaloRecarga) clearInterval(intervaloRecarga);
+    intervaloRecarga = setInterval(() => {
+      carregarDoServidor();
+    }, 5000);
+  }
+
+  function aplicarBusca() {
+    const termo = busca.value.trim().toLowerCase();
+
+    document.querySelectorAll(".item").forEach(item => {
+      const nome = item.dataset.nome;
+      item.classList.toggle("escondido", !nome.includes(termo));
+    });
+  }
+
+  async function copiarResultados() {
+    const pagos = [];
+    const pendentes = [];
+
+    document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+      if (cb.checked) {
+        pagos.push(cb.dataset.nome);
+      } else {
+        pendentes.push(cb.dataset.nome);
+      }
+    });
+
+    const usarArroba = pendentes.length <= 10;
+    const totalArrecadado = (pagos.length * VALOR_COTA).toFixed(2).replace(".", ",");
+    const NOME_MES = nomeMesReferencia(MES_REFERENCIA);
+    const MES_NUMERO = numeroMesReferencia(MES_REFERENCIA);
+
+    let texto =
+`🎯 *COTA MENSAL – MEGA-SENA + LOTOFÁCIL*
+
+💰 *VALOR:* R$ ${VALOR_COTA.toFixed(2).replace(".", ",")}
+📅 *MÊS:* ${NOME_MES}
+⏰ *PAGAMENTO ATÉ:* 09/${MES_NUMERO}
+
+🔑 *PIX:* 71999989616
+
+🎰 01 Jogo de *09 dezenas* na *Mega-Sena*
+🎰 01 Jogo de *17 dezenas* na *Lotofácil*
+
+━━━━━━━━━━━━━━
+✅ *COTAS PAGAS:* ${pagos.length}
+💵 *TOTAL ARRECADADO:* R$ ${totalArrecadado}
+━━━━━━━━━━━━━━
+
+📋 *PAGOS*
+`;
+
+    pagos.forEach((nome, i) => {
+      texto += `${String(i + 1).padStart(2, "0")} - ${nome} - *PG*\n`;
+    });
+
+    if (pendentes.length > 0) {
+      texto += `\n⚠️ *COTAS PENDENTES:* ${pendentes.length}\n`;
+      if (usarArroba) texto += "👇 *ATENÇÃO*\n";
+
+      pendentes.forEach(nome => {
+        texto += usarArroba ? `@${nome}\n` : `${nome}\n`;
+      });
+    }
+
+    try {
+      await navigator.clipboard.writeText(texto);
+      alert("Texto copiado para o WhatsApp ✅");
+    } catch (erro) {
+      console.error("Erro ao copiar:", erro);
+      alert("Não foi possível copiar o texto.");
+    }
+  }
+
+  busca.addEventListener("input", aplicarBusca);
+
+  btnCopiar.addEventListener("click", copiarResultados);
+
+  btnSair.addEventListener("click", () => {
+    if (typeof logout === "function") {
+      logout();
+    } else {
+      alert("Função logout() não encontrada.");
+    }
+  });
+
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) {
+      carregarDoServidor();
+    }
+  });
+
+  window.addEventListener("focus", carregarDoServidor);
+
+  criarLista();
+  carregarDoServidor();
+  iniciarListenerTempoReal();
+  iniciarRecargaPeriodica();
+</script><!DOCTYPE html>
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8" />
