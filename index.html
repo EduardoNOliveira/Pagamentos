@@ -22,6 +22,551 @@
       --radius: 14px;
     }
 
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 26px;
+      color: #0f172a;
+    }
+
+    .sub {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 4px;
+    }
+
+    .topo {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    button {
+      border: none;
+      border-radius: 10px;
+      padding: 12px 16px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
+      transition: 0.2s;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn-danger {
+      background: #ef2525;
+      color: white;
+      width: 100%;
+      margin-top: 16px;
+    }
+
+    .busca {
+      width: 100%;
+      padding: 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      outline: none;
+      font-size: 14px;
+    }
+
+    .busca:focus {
+      border-color: var(--primary);
+    }
+
+    .resumo {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px;
+    }
+
+    .box {
+      padding: 12px;
+      border-radius: 10px;
+      background: #f9fafb;
+      border: 1px solid var(--border);
+      min-height: 72px;
+    }
+
+    .box .titulo {
+      font-size: 14px;
+      color: #111827;
+    }
+
+    .box strong {
+      font-size: 22px;
+      display: block;
+      margin-top: 6px;
+      color: #111827;
+    }
+
+    .lista {
+      display: grid;
+      gap: 8px;
+    }
+
+    .item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: white;
+      gap: 12px;
+    }
+
+    .item.pago {
+      background: var(--success-bg);
+      border-color: #bbf7d0;
+    }
+
+    .left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .nome {
+      font-size: 14px;
+      word-break: break-word;
+    }
+
+    .status {
+      font-size: 11px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-weight: bold;
+      min-width: 92px;
+      text-align: center;
+    }
+
+    .status.pago {
+      background: #bbf7d0;
+      color: #065f46;
+    }
+
+    .status.pendente {
+      background: #fecaca;
+      color: #b91c1c;
+    }
+
+    .escondido {
+      display: none;
+    }
+
+    #lista input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    @media (max-width: 600px) {
+      .item {
+        padding: 10px 12px;
+      }
+
+      .status {
+        min-width: 88px;
+        font-size: 10px;
+      }
+
+      .nome {
+        font-size: 13px;
+      }
+    }
+  </style>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+  <div class="container">
+
+    <div class="card">
+      <div class="topo">
+        <div>
+          <h1>Controle de Pagamentos</h1>
+          <div class="sub">Sincronizado em tempo real</div>
+        </div>
+      </div>
+
+      <button class="btn-danger" id="btnSair">Sair</button>
+    </div>
+
+    <div class="card">
+      <input id="busca" class="busca" placeholder="Buscar nome..." type="text" />
+    </div>
+
+    <div class="card">
+      <div class="resumo">
+        <div class="box">
+          <div class="titulo">Mês</div>
+          <strong id="mes">--</strong>
+        </div>
+
+        <div class="box">
+          <div class="titulo">Pagos</div>
+          <strong id="pagos">0</strong>
+        </div>
+
+        <div class="box">
+          <div class="titulo">Pendentes</div>
+          <strong id="pendentes">0</strong>
+        </div>
+
+        <div class="box">
+          <div class="titulo">Total</div>
+          <strong id="total">R$ 0,00</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div id="lista" class="lista"></div>
+    </div>
+
+    <div class="card">
+      <button class="btn-primary" id="copiar">Copiar WhatsApp</button>
+    </div>
+
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "SUA_API_KEY",
+      authDomain: "SEU_AUTH_DOMAIN",
+      projectId: "SEU_PROJECT_ID"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const VALOR_COTA = 19.60;
+
+    const nomes = [
+      "Alexsandro Teles","Aline Goes","Ana Paula Ribeiro","Andréia Dias","Angelo Miranda",
+      "Celina Rosa","Cilene Queiroz","Cláudio Matos","Dailza Araújo","Diego Barbosa",
+      "Editânia","Eduardo Oliveira","Emilson Barbosa","Evanice Santos",
+      "Fabiano Souza","Fátima Carvalho","Gersenildo França","Graça Teixeira",
+      "Helena Argolo","Isabela Santana","Ivana Guimarães","Jacira Miranda",
+      "Jadson Miranda","Jaílson Souza","Janmily Mendes","Joseane Oliveira",
+      "Juliana Oliveira","Leandro Nascimento","Lúcia Argolo",
+      "Luciene Oliveira","Manoel Messias","Manuela Rios","Marco Costa",
+      "Maria Espinheira","Mauro Kleber","Mônica Mota","Mônica Pereira",
+      "Patrícia Reis","Reijane Silva","Rodrigo Müller","Rosa Oliveira","Rose Santana",
+      "Simone Cunha","Sueli Ramos","Suely Santos","Tatiana Nascimento",
+      "Vânia Carvalho","Vilma Gravata","Vilma Patrícia","Wilson Dias"
+    ];
+
+    const PAGAMENTOS_FIXOS = {
+      "Jacira Miranda": "2026-12"
+    };
+
+    let estado = {};
+    let mes = new Date().toISOString().slice(0, 7);
+
+    const lista = document.getElementById("lista");
+    const busca = document.getElementById("busca");
+    const btnSair = document.getElementById("btnSair");
+    const btnCopiar = document.getElementById("copiar");
+
+    function getCheckboxes() {
+      return [...document.querySelectorAll('#lista input[type="checkbox"]')];
+    }
+
+    function formatarMes(valorMes) {
+      if (!valorMes || !valorMes.includes("-")) return valorMes || "--";
+
+      const [ano, mesNumero] = valorMes.split("-");
+      const data = new Date(Number(ano), Number(mesNumero) - 1, 1);
+
+      return data.toLocaleDateString("pt-BR", {
+        month: "long",
+        year: "numeric"
+      });
+    }
+
+    function formatarMoeda(valor) {
+      return valor.toLocaleString("pt-BR", {
+        style: "currency",
+        currency: "BRL"
+      });
+    }
+
+    function criarLista() {
+      lista.innerHTML = "";
+
+      nomes.forEach(nome => {
+        const div = document.createElement("div");
+        div.className = "item";
+        div.dataset.nome = nome.toLowerCase();
+
+        const left = document.createElement("div");
+        left.className = "left";
+
+        const cb = document.createElement("input");
+        cb.type = "checkbox";
+        cb.dataset.nome = nome;
+        cb.addEventListener("change", salvar);
+
+        const span = document.createElement("span");
+        span.className = "nome";
+        span.textContent = nome;
+
+        left.appendChild(cb);
+        left.appendChild(span);
+
+        const status = document.createElement("span");
+        status.className = "status pendente";
+        status.textContent = "PENDENTE";
+
+        div.appendChild(left);
+        div.appendChild(status);
+
+        lista.appendChild(div);
+      });
+    }
+
+    function aplicar() {
+      getCheckboxes().forEach(cb => {
+        const nome = cb.dataset.nome;
+        const item = cb.closest(".item");
+        const status = item.querySelector(".status");
+
+        const pagoFixo = PAGAMENTOS_FIXOS[nome] && mes <= PAGAMENTOS_FIXOS[nome];
+
+        if (pagoFixo) {
+          cb.checked = true;
+          cb.disabled = true;
+        } else {
+          cb.disabled = false;
+          cb.checked = !!estado[nome];
+        }
+
+        if (cb.checked) {
+          item.classList.add("pago");
+          status.className = "status pago";
+          status.textContent = "PAGO";
+        } else {
+          item.classList.remove("pago");
+          status.className = "status pendente";
+          status.textContent = "PENDENTE";
+        }
+      });
+
+      atualizarResumo();
+      aplicarBusca();
+    }
+
+    function atualizarResumo() {
+      const checks = getCheckboxes();
+      const pagos = checks.filter(c => c.checked).length;
+      const pendentes = checks.length - pagos;
+
+      document.getElementById("pagos").innerText = pagos;
+      document.getElementById("pendentes").innerText = pendentes;
+      document.getElementById("total").innerText = formatarMoeda(pagos * VALOR_COTA);
+      document.getElementById("mes").innerText = formatarMes(mes);
+    }
+
+    async function salvar() {
+      const novoEstado = {};
+
+      getCheckboxes().forEach(cb => {
+        if (!cb.disabled) {
+          novoEstado[cb.dataset.nome] = cb.checked;
+        }
+      });
+
+      estado = novoEstado;
+      aplicar();
+
+      try {
+        await db.collection("pagamentosControle").doc("ultimo").set({
+          mes: mes,
+          estado: estado
+        });
+      } catch (erro) {
+        console.error("Erro ao salvar:", erro);
+        alert("Erro ao salvar no Firebase.");
+      }
+    }
+
+    async function carregar() {
+      try {
+        const snap = await db.collection("pagamentosControle").doc("ultimo").get();
+
+        if (snap.exists) {
+          const dados = snap.data();
+          estado = dados.estado || {};
+          mes = dados.mes || mes;
+        }
+
+        aplicar();
+      } catch (erro) {
+        console.error("Erro ao carregar:", erro);
+      }
+    }
+
+    function tempoReal() {
+      db.collection("pagamentosControle").doc("ultimo")
+        .onSnapshot(
+          snap => {
+            if (snap.exists) {
+              const dados = snap.data();
+              estado = dados.estado || {};
+              mes = dados.mes || mes;
+              aplicar();
+            }
+          },
+          erro => {
+            console.error("Erro no tempo real:", erro);
+          }
+        );
+    }
+
+    function aplicarBusca() {
+      const termo = busca.value.toLowerCase().trim();
+
+      document.querySelectorAll(".item").forEach(item => {
+        item.classList.toggle("escondido", !item.dataset.nome.includes(termo));
+      });
+    }
+
+    async function copiarWhatsApp() {
+      const checks = getCheckboxes();
+      const pagos = [];
+      const pendentes = [];
+
+      checks.forEach(cb => {
+        if (cb.checked) {
+          pagos.push(cb.dataset.nome);
+        } else {
+          pendentes.push(cb.dataset.nome);
+        }
+      });
+
+      const totalArrecadado = (pagos.length * VALOR_COTA).toFixed(2).replace(".", ",");
+
+      let txt =
+`🎯 *COTA MENSAL – MEGA-SENA + LOTOFÁCIL*
+
+💰 *VALOR:* R$ ${VALOR_COTA.toFixed(2).replace(".", ",")}
+📅 *MÊS:* ${formatarMes(mes).toUpperCase()}
+
+━━━━━━━━━━━━━━
+✅ *COTAS PAGAS:* ${pagos.length}
+💵 *TOTAL ARRECADADO:* R$ ${totalArrecadado}
+━━━━━━━━━━━━━━
+
+📋 *PAGOS*
+`;
+
+      pagos.forEach((nome, i) => {
+        txt += `${String(i + 1).padStart(2, "0")} - ${nome} - *PG*\n`;
+      });
+
+      if (pendentes.length > 0) {
+        txt += `\n⚠️ *COTAS PENDENTES:* ${pendentes.length}\n`;
+        pendentes.forEach(nome => {
+          txt += `${nome}\n`;
+        });
+      }
+
+      try {
+        await navigator.clipboard.writeText(txt);
+        alert("Copiado!");
+      } catch (erro) {
+        console.error("Erro ao copiar:", erro);
+        alert("Não foi possível copiar.");
+      }
+    }
+
+    busca.addEventListener("input", aplicarBusca);
+
+    btnCopiar.addEventListener("click", copiarWhatsApp);
+
+    btnSair.addEventListener("click", () => {
+      if (typeof logout === "function") {
+        logout();
+      } else {
+        alert("Função logout() não encontrada.");
+      }
+    });
+
+    setInterval(carregar, 5000);
+
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) carregar();
+    });
+
+    window.addEventListener("focus", carregar);
+
+    criarLista();
+    carregar();
+    tempoReal();
+  </script>
+</body>
+</html><!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Controle de Pagamentos</title>
+
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --success: #16a34a;
+      --success-bg: #dcfce7;
+      --danger: #dc2626;
+      --danger-bg: #fee2e2;
+      --border: #e5e7eb;
+      --shadow: 0 10px 25px rgba(0,0,0,0.08);
+      --radius: 14px;
+    }
+
     * { box-sizing: border-box; }
 
     body {
