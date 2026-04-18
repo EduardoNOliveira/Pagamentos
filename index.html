@@ -1,4 +1,351 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Controle de Pagamentos</title>
+
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --success: #16a34a;
+      --success-bg: #dcfce7;
+      --danger: #dc2626;
+      --danger-bg: #fee2e2;
+      --border: #e5e7eb;
+      --shadow: 0 10px 25px rgba(0,0,0,0.08);
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 26px;
+    }
+
+    .sub {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .topo {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    button {
+      border: none;
+      border-radius: 10px;
+      padding: 12px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: white;
+    }
+
+    .busca {
+      width: 100%;
+      padding: 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+
+    .resumo {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px,1fr));
+      gap: 10px;
+    }
+
+    .box {
+      padding: 12px;
+      border-radius: 10px;
+      background: #f9fafb;
+      border: 1px solid var(--border);
+    }
+
+    .box strong {
+      font-size: 20px;
+      display: block;
+      margin-top: 5px;
+    }
+
+    .lista {
+      display: grid;
+      gap: 8px;
+    }
+
+    .item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: white;
+    }
+
+    .item.pago {
+      background: var(--success-bg);
+    }
+
+    .nome {
+      margin-left: 8px;
+    }
+
+    .status {
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-weight: bold;
+    }
+
+    .status.pago {
+      background: #bbf7d0;
+      color: #065f46;
+    }
+
+    .status.pendente {
+      background: #fecaca;
+      color: #7f1d1d;
+    }
+
+    .escondido {
+      display: none;
+    }
+  </style>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+</head>
+
+<body>
+<div class="container">
+
+  <div class="card topo">
+    <div>
+      <h1>Controle de Pagamentos</h1>
+      <div class="sub">Sincronizado em tempo real</div>
+    </div>
+    <button class="btn-danger" id="btnSair">Sair</button>
+  </div>
+
+  <div class="card">
+    <input id="busca" class="busca" placeholder="Buscar nome..." />
+  </div>
+
+  <div class="card resumo">
+    <div class="box">Mês<strong id="mes"></strong></div>
+    <div class="box">Pagos<strong id="pagos"></strong></div>
+    <div class="box">Pendentes<strong id="pendentes"></strong></div>
+    <div class="box">Total<strong id="total"></strong></div>
+  </div>
+
+  <div class="card">
+    <div id="lista" class="lista"></div>
+  </div>
+
+  <div class="card">
+    <button class="btn-primary" id="copiar">Copiar WhatsApp</button>
+  </div>
+
+</div>
+
 <script>
+const firebaseConfig = {
+  apiKey: "SUA_API_KEY",
+  authDomain: "SEU_AUTH_DOMAIN",
+  projectId: "SEU_PROJECT_ID",
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+const nomes = [
+"Alexsandro Teles","Aline Goes","Ana Paula Ribeiro","Andréia Dias","Angelo Miranda",
+"Celina Rosa","Cilene Queiroz","Cláudio Matos","Dailza Araújo","Diego Barbosa",
+"Editânia","Eduardo Oliveira","Emilson Barbosa","Evanice Santos",
+"Fabiano Souza","Fátima Carvalho","Gersenildo França","Graça Teixeira",
+"Helena Argolo","Isabela Santana","Ivana Guimarães","Jacira Miranda",
+"Jadson Miranda","Jaílson Souza","Janmily Mendes","Joseane Oliveira",
+"Juliana Oliveira","Leandro Nascimento","Lúcia Argolo",
+"Luciene Oliveira","Manoel Messias","Manuela Rios","Marco Costa",
+"Maria Espinheira","Mauro Kleber","Mônica Mota","Mônica Pereira",
+"Patrícia Reis","Reijane Silva","Rodrigo Müller","Rosa Oliveira","Rose Santana",
+"Simone Cunha","Sueli Ramos","Suely Santos","Tatiana Nascimento",
+"Vânia Carvalho","Vilma Gravata","Vilma Patrícia","Wilson Dias"
+];
+
+let estado = {};
+let mes = new Date().toISOString().slice(0,7);
+
+const lista = document.getElementById("lista");
+
+function criarLista(){
+  lista.innerHTML="";
+  nomes.forEach(nome=>{
+    const div=document.createElement("div");
+    div.className="item";
+    div.dataset.nome=nome.toLowerCase();
+
+    const left=document.createElement("div");
+
+    const cb=document.createElement("input");
+    cb.type="checkbox";
+    cb.dataset.nome=nome;
+    cb.onchange=salvar;
+
+    const span=document.createElement("span");
+    span.className="nome";
+    span.textContent=nome;
+
+    left.append(cb,span);
+
+    const status=document.createElement("span");
+    status.className="status pendente";
+    status.textContent="PENDENTE";
+
+    div.append(left,status);
+    lista.appendChild(div);
+  });
+}
+
+function aplicar(){
+  document.querySelectorAll("input").forEach(cb=>{
+    const nome=cb.dataset.nome;
+    const item=cb.closest(".item");
+    const status=item.querySelector(".status");
+
+    cb.checked=!!estado[nome];
+
+    if(cb.checked){
+      item.classList.add("pago");
+      status.className="status pago";
+      status.textContent="PAGO";
+    }else{
+      item.classList.remove("pago");
+      status.className="status pendente";
+      status.textContent="PENDENTE";
+    }
+  });
+
+  atualizarResumo();
+}
+
+function atualizarResumo(){
+  const checks=[...document.querySelectorAll("input")];
+  const pagos=checks.filter(c=>c.checked).length;
+  const pend=checks.length-pagos;
+
+  document.getElementById("pagos").innerText=pagos;
+  document.getElementById("pendentes").innerText=pend;
+  document.getElementById("total").innerText="R$ "+(pagos*19.6).toFixed(2);
+  document.getElementById("mes").innerText=mes;
+}
+
+async function salvar(){
+  document.querySelectorAll("input").forEach(cb=>{
+    estado[cb.dataset.nome]=cb.checked;
+  });
+
+  await db.collection("pagamentosControle").doc("ultimo").set({
+    mes: mes,
+    estado: estado
+  });
+
+  aplicar();
+}
+
+async function carregar(){
+  const snap=await db.collection("pagamentosControle").doc("ultimo").get();
+
+  if(snap.exists){
+    estado=snap.data().estado||{};
+    mes=snap.data().mes||mes;
+  }
+
+  aplicar();
+}
+
+function tempoReal(){
+  db.collection("pagamentosControle").doc("ultimo")
+  .onSnapshot(snap=>{
+    if(snap.exists){
+      estado=snap.data().estado||{};
+      mes=snap.data().mes||mes;
+      aplicar();
+    }
+  });
+}
+
+// busca
+document.getElementById("busca").oninput=e=>{
+  const t=e.target.value.toLowerCase();
+  document.querySelectorAll(".item").forEach(i=>{
+    i.classList.toggle("escondido",!i.dataset.nome.includes(t));
+  });
+};
+
+// copiar
+document.getElementById("copiar").onclick=()=>{
+  let txt="";
+  document.querySelectorAll("input").forEach(cb=>{
+    txt+= (cb.checked?"✅ ":"❌ ") + cb.dataset.nome + "\n";
+  });
+  navigator.clipboard.writeText(txt);
+  alert("Copiado!");
+};
+
+// reforços mobile
+setInterval(carregar,5000);
+document.addEventListener("visibilitychange",()=>{ if(!document.hidden) carregar(); });
+window.addEventListener("focus",carregar);
+
+// iniciar
+criarLista();
+carregar();
+tempoReal();
+
+</script>
+
+</body>
+</html><script>
   const firebaseConfig = {
     apiKey: "SUA_API_KEY",
     authDomain: "SEU_AUTH_DOMAIN",
