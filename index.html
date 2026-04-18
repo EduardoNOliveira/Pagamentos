@@ -6,6 +6,652 @@
   <title>Controle de Pagamentos</title>
 
   <style>
+    :root {
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --success: #16a34a;
+      --success-bg: #dcfce7;
+      --danger: #dc2626;
+      --danger-bg: #fee2e2;
+      --border: #e5e7eb;
+      --shadow: 0 10px 25px rgba(0,0,0,0.08);
+      --radius: 14px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .topo {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 28px;
+    }
+
+    .subtitulo {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .acoes-topo {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      border: none;
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 15px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: white;
+    }
+
+    .btn-danger:hover {
+      opacity: 0.9;
+    }
+
+    .busca {
+      width: 100%;
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      font-size: 15px;
+      outline: none;
+    }
+
+    .busca:focus {
+      border-color: var(--primary);
+    }
+
+    .resumo {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px;
+    }
+
+    .box {
+      border-radius: 12px;
+      padding: 16px;
+      background: #f9fafb;
+      border: 1px solid var(--border);
+    }
+
+    .box .titulo {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .box .valor {
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    .box.pagos {
+      background: var(--success-bg);
+      border-color: #bbf7d0;
+    }
+
+    .box.pendentes {
+      background: var(--danger-bg);
+      border-color: #fecaca;
+    }
+
+    .lista {
+      display: grid;
+      gap: 10px;
+    }
+
+    .item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #fff;
+      transition: 0.2s;
+    }
+
+    .item:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.05);
+    }
+
+    .item.escondido {
+      display: none;
+    }
+
+    .item.pago {
+      background: var(--success-bg);
+      border-color: #bbf7d0;
+    }
+
+    .item.pago .nome {
+      color: var(--success);
+      font-weight: bold;
+    }
+
+    .info-pessoa {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .nome {
+      font-size: 15px;
+    }
+
+    .status {
+      font-size: 12px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-weight: bold;
+      min-width: 90px;
+      text-align: center;
+    }
+
+    .status.pago {
+      background: #bbf7d0;
+      color: #166534;
+    }
+
+    .status.pendente {
+      background: #fecaca;
+      color: #991b1b;
+    }
+
+    .rodape-acoes {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 10px;
+    }
+
+    input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+    }
+
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 22px;
+      }
+
+      .item {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .info-pessoa {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .status {
+        min-width: auto;
+      }
+
+      .acoes-topo,
+      .rodape-acoes {
+        width: 100%;
+      }
+
+      .acoes-topo button,
+      .rodape-acoes button {
+        width: 100%;
+      }
+    }
+  </style>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+  <div class="container">
+
+    <div class="card">
+      <div class="topo">
+        <div>
+          <h1>Controle de Pagamentos</h1>
+          <div class="subtitulo">Lista mensal de cotas com sincronização em tempo real</div>
+        </div>
+
+        <div class="acoes-topo">
+          <button class="btn-danger" id="btnSair">Sair</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <input
+        type="text"
+        id="busca"
+        class="busca"
+        placeholder="Buscar nome..."
+      />
+    </div>
+
+    <div class="card">
+      <div class="resumo">
+        <div class="box">
+          <div class="titulo">Mês de referência</div>
+          <div class="valor" id="mesReferenciaTela">--</div>
+        </div>
+
+        <div class="box pagos">
+          <div class="titulo">Pagos</div>
+          <div class="valor" id="totalPagos">0</div>
+        </div>
+
+        <div class="box pendentes">
+          <div class="titulo">Pendentes</div>
+          <div class="valor" id="totalPendentes">0</div>
+        </div>
+
+        <div class="box">
+          <div class="titulo">Total arrecadado</div>
+          <div class="valor" id="totalArrecadado">R$ 0,00</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div id="lista" class="lista"></div>
+
+      <div class="muted">
+        Pessoas com pagamento fixo ficam marcadas automaticamente.
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="rodape-acoes">
+        <button class="btn-primary" id="btnCopiar">Copiar para WhatsApp</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // ================= FIREBASE =================
+    const firebaseConfig = {
+      apiKey: "SUA_API_KEY",
+      authDomain: "SEU_AUTH_DOMAIN",
+      projectId: "SEU_PROJECT_ID",
+      storageBucket: "SEU_STORAGE_BUCKET",
+      messagingSenderId: "SEU_MESSAGING_SENDER_ID",
+      appId: "SEU_APP_ID"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // ================= CONFIG =================
+    const VALOR_COTA = 19.60;
+
+    const hoje = new Date();
+    const MES_ATUAL = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, "0")}`;
+
+    let MES_REFERENCIA = MES_ATUAL;
+    let ESTADO_ATUAL = {};
+
+    const nomes = [
+      "Alexsandro Teles","Aline Goes","Ana Paula Ribeiro","Andréia Dias","Angelo Miranda",
+      "Celina Rosa","Cilene Queiroz","Cláudio Matos","Dailza Araújo","Diego Barbosa",
+      "Editânia","Eduardo Oliveira","Emilson Barbosa","Evanice Santos",
+      "Fabiano Souza","Fátima Carvalho","Gersenildo França","Graça Teixeira",
+      "Helena Argolo","Isabela Santana","Ivana Guimarães","Jacira Miranda",
+      "Jadson Miranda","Jaílson Souza","Janmily Mendes","Joseane Oliveira",
+      "Juliana Oliveira","Leandro Nascimento","Lúcia Argolo",
+      "Luciene Oliveira","Manoel Messias","Manuela Rios","Marco Costa",
+      "Maria Espinheira","Mauro Kleber","Mônica Mota","Mônica Pereira",
+      "Patrícia Reis","Reijane Silva","Rodrigo Müller","Rosa Oliveira","Rose Santana",
+      "Simone Cunha","Sueli Ramos","Suely Santos","Tatiana Nascimento",
+      "Vânia Carvalho","Vilma Gravata","Vilma Patrícia","Wilson Dias"
+    ];
+
+    const PAGAMENTOS_FIXOS = {
+      "Jacira Miranda": "2026-12"
+    };
+
+    // ================= ELEMENTOS =================
+    const lista = document.getElementById("lista");
+    const busca = document.getElementById("busca");
+    const btnCopiar = document.getElementById("btnCopiar");
+    const btnSair = document.getElementById("btnSair");
+
+    const totalPagosEl = document.getElementById("totalPagos");
+    const totalPendentesEl = document.getElementById("totalPendentes");
+    const totalArrecadadoEl = document.getElementById("totalArrecadado");
+    const mesReferenciaTelaEl = document.getElementById("mesReferenciaTela");
+
+    // ================= FUNÇÕES =================
+    function nomeMesReferencia(mesReferencia) {
+      const [anoStr, mesStr] = mesReferencia.split("-");
+      const ano = Number(anoStr);
+      const mes = Number(mesStr);
+
+      return new Date(ano, mes - 1, 1)
+        .toLocaleString("pt-BR", { month: "long", year: "numeric" })
+        .toUpperCase();
+    }
+
+    function numeroMesReferencia(mesReferencia) {
+      const [, mesStr] = mesReferencia.split("-");
+      return String(Number(mesStr)).padStart(2, "0");
+    }
+
+    function formatarMoeda(valor) {
+      return valor.toLocaleString("pt-BR", {
+        style: "currency",
+        currency: "BRL"
+      });
+    }
+
+    function criarLista() {
+      lista.innerHTML = "";
+
+      nomes.forEach(nome => {
+        const item = document.createElement("div");
+        item.className = "item";
+        item.dataset.nome = nome.toLowerCase();
+
+        const info = document.createElement("div");
+        info.className = "info-pessoa";
+
+        const ladoEsquerdo = document.createElement("div");
+        ladoEsquerdo.style.display = "flex";
+        ladoEsquerdo.style.alignItems = "center";
+        ladoEsquerdo.style.gap = "12px";
+
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.dataset.nome = nome;
+        checkbox.addEventListener("change", salvarEstado);
+
+        const nomeEl = document.createElement("span");
+        nomeEl.className = "nome";
+        nomeEl.textContent = nome;
+
+        ladoEsquerdo.appendChild(checkbox);
+        ladoEsquerdo.appendChild(nomeEl);
+
+        const status = document.createElement("span");
+        status.className = "status pendente";
+        status.textContent = "PENDENTE";
+
+        info.appendChild(ladoEsquerdo);
+        info.appendChild(status);
+
+        item.appendChild(info);
+        lista.appendChild(item);
+      });
+    }
+
+    function atualizarResumo() {
+      const checkboxes = [...document.querySelectorAll('input[type="checkbox"]')];
+      const pagos = checkboxes.filter(cb => cb.checked).length;
+      const pendentes = checkboxes.length - pagos;
+      const total = pagos * VALOR_COTA;
+
+      totalPagosEl.textContent = pagos;
+      totalPendentesEl.textContent = pendentes;
+      totalArrecadadoEl.textContent = formatarMoeda(total);
+      mesReferenciaTelaEl.textContent = nomeMesReferencia(MES_REFERENCIA);
+    }
+
+    function aplicarEstado() {
+      document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+        const nome = cb.dataset.nome;
+        const item = cb.closest(".item");
+        const nomeEl = item.querySelector(".nome");
+        const status = item.querySelector(".status");
+
+        if (PAGAMENTOS_FIXOS[nome] && MES_REFERENCIA <= PAGAMENTOS_FIXOS[nome]) {
+          cb.checked = true;
+          cb.disabled = true;
+        } else {
+          cb.disabled = false;
+          cb.checked = !!ESTADO_ATUAL[nome];
+        }
+
+        if (cb.checked) {
+          item.classList.add("pago");
+          status.className = "status pago";
+          status.textContent = "PAGO";
+          nomeEl.classList.add("pago");
+        } else {
+          item.classList.remove("pago");
+          status.className = "status pendente";
+          status.textContent = "PENDENTE";
+          nomeEl.classList.remove("pago");
+        }
+      });
+
+      atualizarResumo();
+      aplicarBusca();
+    }
+
+    async function carregarDoServidor() {
+      try {
+        const docRef = db.collection("pagamentosControle").doc("ultimo");
+        const snap = await docRef.get();
+
+        if (snap.exists) {
+          const data = snap.data();
+          MES_REFERENCIA = data?.mes || MES_ATUAL;
+          ESTADO_ATUAL = data?.estado || {};
+        } else {
+          MES_REFERENCIA = MES_ATUAL;
+          ESTADO_ATUAL = {};
+        }
+
+        aplicarEstado();
+      } catch (erro) {
+        console.error("Erro ao carregar do servidor:", erro);
+      }
+    }
+
+    async function salvarEstado() {
+      const estado = {};
+
+      document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+        if (!cb.disabled) {
+          estado[cb.dataset.nome] = cb.checked;
+        }
+      });
+
+      ESTADO_ATUAL = estado;
+
+      try {
+        const docRef = db.collection("pagamentosControle").doc("ultimo");
+        await docRef.set({
+          mes: MES_REFERENCIA,
+          estado: ESTADO_ATUAL
+        });
+
+        aplicarEstado();
+      } catch (erro) {
+        console.error("Erro ao salvar no servidor:", erro);
+      }
+    }
+
+    function iniciarListenerTempoReal() {
+      const docRef = db.collection("pagamentosControle").doc("ultimo");
+
+      docRef.onSnapshot(
+        snap => {
+          if (snap.exists) {
+            const data = snap.data();
+            MES_REFERENCIA = data?.mes || MES_ATUAL;
+            ESTADO_ATUAL = data?.estado || {};
+          } else {
+            MES_REFERENCIA = MES_ATUAL;
+            ESTADO_ATUAL = {};
+          }
+
+          aplicarEstado();
+        },
+        erro => {
+          console.error("Erro no listener em tempo real:", erro);
+        }
+      );
+    }
+
+    function aplicarBusca() {
+      const termo = busca.value.trim().toLowerCase();
+
+      document.querySelectorAll(".item").forEach(item => {
+        const nome = item.dataset.nome;
+        item.classList.toggle("escondido", !nome.includes(termo));
+      });
+    }
+
+    async function copiarResultados() {
+      const pagos = [];
+      const pendentes = [];
+
+      document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+        if (cb.checked) {
+          pagos.push(cb.dataset.nome);
+        } else {
+          pendentes.push(cb.dataset.nome);
+        }
+      });
+
+      const usarArroba = pendentes.length <= 10;
+      const totalArrecadado = (pagos.length * VALOR_COTA).toFixed(2).replace(".", ",");
+      const NOME_MES = nomeMesReferencia(MES_REFERENCIA);
+      const MES_NUMERO = numeroMesReferencia(MES_REFERENCIA);
+
+      let texto =
+`🎯 *COTA MENSAL – MEGA-SENA + LOTOFÁCIL*
+
+💰 *VALOR:* R$ ${VALOR_COTA.toFixed(2).replace(".", ",")}
+📅 *MÊS:* ${NOME_MES}
+⏰ *PAGAMENTO ATÉ:* 09/${MES_NUMERO}
+
+🔑 *PIX:* 71999989616
+
+🎰 01 Jogo de *09 dezenas* na *Mega-Sena*
+🎰 01 Jogo de *17 dezenas* na *Lotofácil*
+
+━━━━━━━━━━━━━━
+✅ *COTAS PAGAS:* ${pagos.length}
+💵 *TOTAL ARRECADADO:* R$ ${totalArrecadado}
+━━━━━━━━━━━━━━
+
+📋 *PAGOS*
+`;
+
+      pagos.forEach((nome, i) => {
+        texto += `${String(i + 1).padStart(2, "0")} - ${nome} - *PG*\n`;
+      });
+
+      if (pendentes.length > 0) {
+        texto += `\n⚠️ *COTAS PENDENTES:* ${pendentes.length}\n`;
+
+        if (usarArroba) {
+          texto += "👇 *ATENÇÃO*\n";
+        }
+
+        pendentes.forEach(nome => {
+          texto += usarArroba ? `@${nome}\n` : `${nome}\n`;
+        });
+      }
+
+      try {
+        await navigator.clipboard.writeText(texto);
+        alert("Texto copiado para o WhatsApp ✅");
+      } catch (erro) {
+        console.error("Erro ao copiar:", erro);
+        alert("Não foi possível copiar o texto.");
+      }
+    }
+
+    // ================= EVENTOS =================
+    busca.addEventListener("input", aplicarBusca);
+
+    btnCopiar.addEventListener("click", copiarResultados);
+
+    btnSair.addEventListener("click", () => {
+      if (typeof logout === "function") {
+        logout();
+      } else {
+        alert("Função logout() não encontrada.");
+      }
+    });
+
+    // ================= INÍCIO =================
+    criarLista();
+    carregarDoServidor();
+    iniciarListenerTempoReal();
+  </script>
+</body>
+</html><!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Controle de Pagamentos</title>
+
+  <style>
     body {
       font-family: Arial, sans-serif;
       padding: 15px;
