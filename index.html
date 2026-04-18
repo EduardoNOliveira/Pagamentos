@@ -1,234 +1,261 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Controle de Pagamentos</title>
 
   <style>
     body {
       font-family: Arial, sans-serif;
       padding: 15px;
+      max-width: 700px;
+      margin: 0 auto;
     }
+
+    h2 {
+      margin-top: 20px;
+    }
+
     label {
       display: block;
-      margin: 4px 0;
+      margin: 6px 0;
+      padding: 6px 8px;
+      border-radius: 6px;
     }
+
     .pago {
       color: green;
       font-weight: bold;
+      background: #f1fff1;
     }
+
     button {
       margin-top: 20px;
       padding: 12px;
       font-size: 16px;
       width: 100%;
+      cursor: pointer;
+      border: none;
+      border-radius: 8px;
+      background: #0d6efd;
+      color: white;
+    }
+
+    button:hover {
+      opacity: 0.95;
+    }
+
+    .btn-sair {
+      background: #dc3545;
+      margin-top: 0;
+      margin-bottom: 10px;
     }
   </style>
 
-  <!-- Se você já tiver auth.js no seu projeto, mantenha -->
-  <!-- <script src="auth.js"></script> -->
-
-  <!-- Firebase (para sincronizar entre celular e PC) -->
-  <!-- 1) Crie um projeto no Firebase em https://console.firebase.google.com -->
-  <!-- 2) Adicione um app Web e copie o firebaseConfig para baixo -->
-  <!-- 3) Habilite o Firestore Database no modo production ou test -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-  <script>
-    // Config do seu projeto Firebase
-    const firebaseConfig = {
-      apiKey: "AIzaSyA4jZeE9qpW50GLsjohuVDMIjOmC9Lyig0",
-      authDomain: "pagamentos-b0709.firebaseapp.com",
-      projectId: "pagamentos-b0709",
-      storageBucket: "pagamentos-b0709.firebasestorage.app",
-      messagingSenderId: "146576431226",
-      appId: "1:146576431226:web:8c4f2221281c5a5a5fc3c3",
-      measurementId: "G-5BF79SPNQN"
-    };
-
-    // Inicializa Firebase (não mexer depois de configurar)
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-
-    // Se existir checkAuth() no seu projeto, descomente a linha abaixo
-    // checkAuth();
-  </script>
 </head>
-
 <body>
 
-  <button onclick="logout && logout()">Sair</button>
+  <button class="btn-sair" id="btnSair">Sair</button>
 
   <h2>Controle de Pagamentos</h2>
 
+  <div id="lista"></div>
+
+  <button id="btnCopiar">Copiar para WhatsApp</button>
+
   <script>
-  // ================= CONFIGURAÇÃO DE MÊS / ESTADO SYNC BACKEND =================
-  const hoje = new Date();
-  const MES_ATUAL = hoje.getFullYear() + "-" + String(hoje.getMonth() + 1).padStart(2, "0");
+    // ================= FIREBASE =================
+    const firebaseConfig = {
+      apiKey: "SUA_API_KEY",
+      authDomain: "SEU_AUTH_DOMAIN",
+      projectId: "SEU_PROJECT_ID",
+      storageBucket: "SEU_STORAGE_BUCKET",
+      messagingSenderId: "SEU_MESSAGING_SENDER_ID",
+      appId: "SEU_APP_ID",
+      measurementId: "SEU_MEASUREMENT_ID"
+    };
 
-  // Estes valores serão preenchidos a partir do backend
-  let MES_REFERENCIA = MES_ATUAL;
-  let ESTADO_ATUAL = {}; // { "Nome Pessoa": true/false }
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-  // Nome do mês de referência (vai ser recalculado depois de MES_REFERENCIA definido)
-  function nomeMesReferencia(mesReferencia) {
-    const [anoStr, mesStr] = mesReferencia.split("-");
-    const ano = Number(anoStr);
-    const mes = Number(mesStr);
-    return new Date(ano, mes - 1, 1)
-      .toLocaleString("pt-br", { month: "long" })
-      .toUpperCase();
-  }
+    // ================= DATA ATUAL =================
+    const hoje = new Date();
+    const MES_ATUAL = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, "0")}`;
 
-  function numeroMesReferencia(mesReferencia) {
-    const [, mesStr] = mesReferencia.split("-");
-    return String(Number(mesStr)).padStart(2, "0");
-  }
+    let MES_REFERENCIA = MES_ATUAL;
+    let ESTADO_ATUAL = {};
 
-  // ================= NOMES =================
-  const nomes = [
-    "Alexsandro Teles","Aline Goes","Ana Paula Ribeiro","Andréia Dias","Angelo Miranda",
-    "Celina Rosa","Cilene Queiroz","Cláudio Matos","Dailza Araújo","Diego Barbosa",
-    "Editânia","Eduardo Oliveira","Emilson Barbosa","Evanice Santos",
-    "Fabiano Souza","Fátima Carvalho","Gersenildo França","Graça Teixeira",
-    "Helena Argolo","Isabela Santana","Ivana Guimarães","Jacira Miranda",
-    "Jadson Miranda","Jaílson Souza","Janmily Mendes","Joseane Oliveira",
-    "Juliana Oliveira","Leandro Nascimento","Lúcia Argolo",
-    "Luciene Oliveira","Manoel Messias","Manuela Rios","Marco Costa",
-    "Maria Espinheira","Mauro Kleber","Mônica Mota","Mônica Pereira",
-    "Patrícia Reis","Reijane Silva","Rodrigo Müller","Rosa Oliveira","Rose Santana",
-    "Simone Cunha","Sueli Ramos","Suely Santos","Tatiana Nascimento",
-    "Vânia Carvalho","Vilma Gravata","Vilma Patrícia","Wilson Dias"
-  ];
+    // ================= FUNÇÕES DE DATA =================
+    function nomeMesReferencia(mesReferencia) {
+      const [anoStr, mesStr] = mesReferencia.split("-");
+      const ano = Number(anoStr);
+      const mes = Number(mesStr);
 
-  // ================= PAGAMENTOS FIXOS =================
-  const PAGAMENTOS_FIXOS = {
-    "Jacira Miranda": "2026-12"
-  };
-
-  // ================= LISTA (CRIAÇÃO DOS CHECKBOXES) =================
-  const divLista = document.createElement("div");
-
-  nomes.forEach(nome => {
-    const label = document.createElement("label");
-    const cb = document.createElement("input");
-
-    cb.type = "checkbox";
-    cb.dataset.nome = nome;
-    cb.onchange = salvarEstado;
-
-    label.appendChild(cb);
-    label.append(" " + nome);
-    divLista.appendChild(label);
-  });
-
-  document.body.appendChild(divLista);
-
-  // ================= FUNÇÕES DE SYNC COM BACKEND =================
-
-  // Observa em tempo real o documento "ultimo"
-  function iniciarListenerTempoReal() {
-    const docRef = db.collection("pagamentosControle").doc("ultimo");
-
-    docRef.onSnapshot((snap) => {
-      if (snap.exists) {
-        const data = snap.data(); // { mes, estado }
-        if (data && data.mes && data.estado) {
-          MES_REFERENCIA = data.mes;
-          ESTADO_ATUAL = data.estado || {};
-        } else {
-          MES_REFERENCIA = MES_ATUAL;
-          ESTADO_ATUAL = {};
-        }
-      } else {
-        MES_REFERENCIA = MES_ATUAL;
-        ESTADO_ATUAL = {};
-      }
-      aplicarEstado();
-    }, (e) => {
-      console.error("Erro no listener em tempo real:", e);
-    });
-  }
-
-  // Carregamento inicial (caso queira garantir um primeiro estado)
-  async function carregarDoServidor() {
-    try {
-      const docRef = db.collection("pagamentosControle").doc("ultimo");
-      const snap = await docRef.get();
-
-      if (snap.exists) {
-        const data = snap.data(); // { mes, estado }
-        if (data && data.mes && data.estado) {
-          MES_REFERENCIA = data.mes;
-          ESTADO_ATUAL = data.estado || {};
-        } else {
-          MES_REFERENCIA = MES_ATUAL;
-          ESTADO_ATUAL = {};
-        }
-      } else {
-        MES_REFERENCIA = MES_ATUAL;
-        ESTADO_ATUAL = {};
-      }
-    } catch (e) {
-      console.error("Erro ao carregar do servidor:", e);
-      MES_REFERENCIA = MES_ATUAL;
-      ESTADO_ATUAL = {};
-    } finally {
-      aplicarEstado();
+      return new Date(ano, mes - 1, 1)
+        .toLocaleString("pt-BR", { month: "long" })
+        .toUpperCase();
     }
-  }
 
-  function aplicarEstado() {
-    document.querySelectorAll("input[type=checkbox]").forEach(cb => {
-      const nome = cb.dataset.nome;
+    function numeroMesReferencia(mesReferencia) {
+      const [, mesStr] = mesReferencia.split("-");
+      return String(Number(mesStr)).padStart(2, "0");
+    }
 
-      if (PAGAMENTOS_FIXOS[nome] && MES_REFERENCIA <= PAGAMENTOS_FIXOS[nome]) {
-        cb.checked = true;
-        cb.disabled = true;
-        cb.parentElement.classList.add("pago");
-      } else {
-        cb.checked = !!ESTADO_ATUAL[nome];
-        cb.parentElement.classList.toggle("pago", cb.checked);
-      }
-    });
-  }
+    // ================= NOMES =================
+    const nomes = [
+      "Alexsandro Teles","Aline Goes","Ana Paula Ribeiro","Andréia Dias","Angelo Miranda",
+      "Celina Rosa","Cilene Queiroz","Cláudio Matos","Dailza Araújo","Diego Barbosa",
+      "Editânia","Eduardo Oliveira","Emilson Barbosa","Evanice Santos",
+      "Fabiano Souza","Fátima Carvalho","Gersenildo França","Graça Teixeira",
+      "Helena Argolo","Isabela Santana","Ivana Guimarães","Jacira Miranda",
+      "Jadson Miranda","Jaílson Souza","Janmily Mendes","Joseane Oliveira",
+      "Juliana Oliveira","Leandro Nascimento","Lúcia Argolo",
+      "Luciene Oliveira","Manoel Messias","Manuela Rios","Marco Costa",
+      "Maria Espinheira","Mauro Kleber","Mônica Mota","Mônica Pereira",
+      "Patrícia Reis","Reijane Silva","Rodrigo Müller","Rosa Oliveira","Rose Santana",
+      "Simone Cunha","Sueli Ramos","Suely Santos","Tatiana Nascimento",
+      "Vânia Carvalho","Vilma Gravata","Vilma Patrícia","Wilson Dias"
+    ];
 
-  async function salvarEstado() {
-    const estado = {};
-    document.querySelectorAll("input[type=checkbox]").forEach(cb => {
-      if (!cb.disabled) estado[cb.dataset.nome] = cb.checked;
-    });
+    // ================= PAGAMENTOS FIXOS =================
+    const PAGAMENTOS_FIXOS = {
+      "Jacira Miranda": "2026-12"
+    };
 
-    ESTADO_ATUAL = estado;
+    // ================= ELEMENTOS =================
+    const divLista = document.getElementById("lista");
+    const btnCopiar = document.getElementById("btnCopiar");
+    const btnSair = document.getElementById("btnSair");
 
-    try {
-      const docRef = db.collection("pagamentosControle").doc("ultimo");
-      await docRef.set({
-        mes: MES_REFERENCIA,
-        estado: ESTADO_ATUAL
+    // ================= CRIAR CHECKBOXES =================
+    function criarLista() {
+      divLista.innerHTML = "";
+
+      nomes.forEach(nome => {
+        const label = document.createElement("label");
+        const cb = document.createElement("input");
+
+        cb.type = "checkbox";
+        cb.dataset.nome = nome;
+        cb.addEventListener("change", salvarEstado);
+
+        label.appendChild(cb);
+        label.append(" " + nome);
+        divLista.appendChild(label);
       });
-    } catch (e) {
-      console.error("Erro ao salvar no servidor:", e);
     }
-  }
 
-  // ================= COPIAR WHATSAPP =================
-  function copiarResultados() {
-    const VALOR = 19.60;
-    let pagos = [];
-    let pendentes = [];
+    // ================= APLICAR ESTADO =================
+    function aplicarEstado() {
+      document.querySelectorAll("input[type='checkbox']").forEach(cb => {
+        const nome = cb.dataset.nome;
 
-    document.querySelectorAll("input[type=checkbox]").forEach(cb => {
-      cb.checked ? pagos.push(cb.dataset.nome) : pendentes.push(cb.dataset.nome);
-    });
+        if (PAGAMENTOS_FIXOS[nome] && MES_REFERENCIA <= PAGAMENTOS_FIXOS[nome]) {
+          cb.checked = true;
+          cb.disabled = true;
+          cb.parentElement.classList.add("pago");
+        } else {
+          cb.disabled = false;
+          cb.checked = !!ESTADO_ATUAL[nome];
+          cb.parentElement.classList.toggle("pago", cb.checked);
+        }
+      });
+    }
 
-    const usarArroba = pendentes.length <= 10;
-    const totalArrecadado = (pagos.length * VALOR).toFixed(2).replace(".", ",");
+    // ================= CARREGAR DO FIRESTORE =================
+    async function carregarDoServidor() {
+      try {
+        const docRef = db.collection("pagamentosControle").doc("ultimo");
+        const snap = await docRef.get();
 
-    const NOME_MES = nomeMesReferencia(MES_REFERENCIA);
-    const MES_NUMERO = numeroMesReferencia(MES_REFERENCIA);
+        if (snap.exists) {
+          const data = snap.data();
 
-    let texto =
+          MES_REFERENCIA = data?.mes || MES_ATUAL;
+          ESTADO_ATUAL = data?.estado || {};
+        } else {
+          MES_REFERENCIA = MES_ATUAL;
+          ESTADO_ATUAL = {};
+        }
+
+        aplicarEstado();
+      } catch (erro) {
+        console.error("Erro ao carregar dados do servidor:", erro);
+      }
+    }
+
+    // ================= SALVAR NO FIRESTORE =================
+    async function salvarEstado() {
+      const estado = {};
+
+      document.querySelectorAll("input[type='checkbox']").forEach(cb => {
+        if (!cb.disabled) {
+          estado[cb.dataset.nome] = cb.checked;
+        }
+
+        cb.parentElement.classList.toggle("pago", cb.checked);
+      });
+
+      ESTADO_ATUAL = estado;
+
+      try {
+        const docRef = db.collection("pagamentosControle").doc("ultimo");
+        await docRef.set({
+          mes: MES_REFERENCIA,
+          estado: ESTADO_ATUAL
+        });
+      } catch (erro) {
+        console.error("Erro ao salvar no servidor:", erro);
+      }
+    }
+
+    // ================= LISTENER EM TEMPO REAL =================
+    function iniciarListenerTempoReal() {
+      const docRef = db.collection("pagamentosControle").doc("ultimo");
+
+      docRef.onSnapshot(
+        (snap) => {
+          if (snap.exists) {
+            const data = snap.data();
+            MES_REFERENCIA = data?.mes || MES_ATUAL;
+            ESTADO_ATUAL = data?.estado || {};
+          } else {
+            MES_REFERENCIA = MES_ATUAL;
+            ESTADO_ATUAL = {};
+          }
+
+          aplicarEstado();
+        },
+        (erro) => {
+          console.error("Erro no listener em tempo real:", erro);
+        }
+      );
+    }
+
+    // ================= COPIAR TEXTO =================
+    async function copiarResultados() {
+      const VALOR = 19.60;
+      const pagos = [];
+      const pendentes = [];
+
+      document.querySelectorAll("input[type='checkbox']").forEach(cb => {
+        if (cb.checked) {
+          pagos.push(cb.dataset.nome);
+        } else {
+          pendentes.push(cb.dataset.nome);
+        }
+      });
+
+      const usarArroba = pendentes.length <= 10;
+      const totalArrecadado = (pagos.length * VALOR).toFixed(2).replace(".", ",");
+
+      const NOME_MES = nomeMesReferencia(MES_REFERENCIA);
+      const MES_NUMERO = numeroMesReferencia(MES_REFERENCIA);
+
+      let texto =
 `🎯 *COTA MENSAL – MEGA-SENA + LOTOFÁCIL*
 
 💰 *VALOR:* R$ 19,60
@@ -248,33 +275,49 @@
 📋 *PAGOS*
 `;
 
-    pagos.forEach((n, i) => {
-      texto += `${String(i + 1).padStart(2, "0")} - ${n} - *PG*\n`;
-    });
-
-    if (pendentes.length > 0) {
-      texto += `\n⚠️ *COTAS PENDENTES:* ${pendentes.length}\n`;
-      if (usarArroba) texto += "👇 *ATENÇÃO*\n";
-      pendentes.forEach(n => {
-        texto += usarArroba ? `@${n}\n` : `${n}\n`;
+      pagos.forEach((nome, i) => {
+        texto += `${String(i + 1).padStart(2, "0")} - ${nome} - *PG*\n`;
       });
+
+      if (pendentes.length > 0) {
+        texto += `\n⚠️ *COTAS PENDENTES:* ${pendentes.length}\n`;
+
+        if (usarArroba) {
+          texto += "👇 *ATENÇÃO*\n";
+        }
+
+        pendentes.forEach(nome => {
+          texto += usarArroba ? `@${nome}\n` : `${nome}\n`;
+        });
+      }
+
+      try {
+        await navigator.clipboard.writeText(texto);
+        alert("Texto copiado para o WhatsApp ✅");
+      } catch (erro) {
+        console.error("Erro ao copiar texto:", erro);
+        alert("Não foi possível copiar o texto.");
+      }
     }
 
-    navigator.clipboard.writeText(texto);
-    alert("Texto copiado para o WhatsApp ✅");
-  }
+    // ================= BOTÃO SAIR =================
+    btnSair.addEventListener("click", () => {
+      if (typeof logout === "function") {
+        logout();
+      } else {
+        alert("Função logout() não encontrada.");
+      }
+    });
 
-  // Carregar estado do backend ao abrir a página + iniciar tempo real
-  carregarDoServidor();
-  iniciarListenerTempoReal();
+    btnCopiar.addEventListener("click", copiarResultados);
 
-  // Reforço: faz checagem periódica a cada 5 segundos
-  // (caso o listener em tempo real seja limitado pelo navegador)
-  setInterval(carregarDoServidor, 5000);
+    // ================= INICIALIZAÇÃO =================
+    criarLista();
+    carregarDoServidor();
+    iniciarListenerTempoReal();
+
+    // opcional: reforço periódico
+    setInterval(carregarDoServidor, 5000);
   </script>
-
-  <!-- BOTÃO FINAL -->
-  <button onclick="copiarResultados()">Copiar para WhatsApp</button>
-
 </body>
 </html>
