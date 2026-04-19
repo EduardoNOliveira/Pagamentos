@@ -256,6 +256,8 @@
   let SYNC_ATIVO     = true;
   let listenerUnsub  = null;
   let intervalIdSync = null;
+  let intervalIdAuth = null;
+  let ultimoSyncEmMs = 0;
 
   const nomes = [
     "Alexsandro Teles","Aline Goes","Ana Paula Ribeiro","Andréia Dias","Angelo Miranda",
@@ -317,6 +319,10 @@
       document.querySelector(".container").insertBefore(aviso, document.querySelector(".container").firstChild);
     }
     aviso.textContent = "Sem permissao no Firestore. App em modo local. Habilite Anonymous Auth no Firebase Console.";
+  }
+
+  function podeSincronizar() {
+    return SYNC_ATIVO && !!auth.currentUser;
   }
 
   function criarLista() {
@@ -388,7 +394,7 @@
   }
 
   async function carregarDoServidor() {
-    if (!SYNC_ATIVO) { aplicarEstado(); return; }
+    if (!podeSincronizar()) { aplicarEstado(); return; }
     try {
       const snap = await db.collection("pagamentosControle").doc("ultimo").get();
       if (snap.exists) {
@@ -398,6 +404,7 @@
       } else {
         MES_REFERENCIA = MES_ATUAL; ESTADO_ATUAL = {};
       }
+      ultimoSyncEmMs = Date.now();
       aplicarEstado();
     } catch (e) {
       if (erroPermissao(e)) { desativarSync(e); return; }
@@ -412,9 +419,10 @@
     });
     ESTADO_ATUAL = estado;
     aplicarEstado();
-    if (!SYNC_ATIVO) return;
+    if (!podeSincronizar()) return;
     try {
       await db.collection("pagamentosControle").doc("ultimo").set({ mes: MES_REFERENCIA, estado: ESTADO_ATUAL });
+      ultimoSyncEmMs = Date.now();
     } catch (e) {
       if (erroPermissao(e)) { desativarSync(e); return; }
       console.error("Erro ao salvar:", e);
@@ -422,18 +430,42 @@
   }
 
   function iniciarListenerTempoReal() {
-    if (!SYNC_ATIVO) return;
+    if (!podeSincronizar()) return;
+    if (typeof listenerUnsub === "function") listenerUnsub();
     listenerUnsub = db.collection("pagamentosControle").doc("ultimo").onSnapshot(snap => {
       if (snap.exists) {
         const d = snap.data();
         MES_REFERENCIA = d?.mes    || MES_ATUAL;
         ESTADO_ATUAL   = d?.estado || {};
       } else { MES_REFERENCIA = MES_ATUAL; ESTADO_ATUAL = {}; }
+      ultimoSyncEmMs = Date.now();
       aplicarEstado();
     }, e => {
       if (erroPermissao(e)) { desativarSync(e); return; }
       console.error("Erro no listener:", e);
     });
+  }
+
+  function iniciarPollingSync() {
+    if (intervalIdSync) clearInterval(intervalIdSync);
+    intervalIdSync = setInterval(() => {
+      if (!SYNC_ATIVO) return;
+      // Retry auth in background for browsers that drop auth state on mobile.
+      if (!auth.currentUser) {
+        auth.signInAnonymously().catch(() => {});
+        return;
+      }
+      const semSyncRecente = Date.now() - ultimoSyncEmMs > 8000;
+      if (semSyncRecente) carregarDoServidor();
+    }, 3000);
+  }
+
+  function iniciarAuthRetry() {
+    if (intervalIdAuth) clearInterval(intervalIdAuth);
+    intervalIdAuth = setInterval(() => {
+      if (!SYNC_ATIVO || auth.currentUser) return;
+      auth.signInAnonymously().catch(() => {});
+    }, 10000);
   }
 
   function aplicarBusca() {
@@ -497,8 +529,10 @@
     if (!user) return;
     carregarDoServidor();
     iniciarListenerTempoReal();
-    intervalIdSync = setInterval(() => { if (SYNC_ATIVO) carregarDoServidor(); }, 5000);
+    iniciarPollingSync();
   });
+
+  iniciarAuthRetry();
   </script>
 </body>
 </html>
