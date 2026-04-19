@@ -1,9 +1,11 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Controle de Pagamentos</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
 
   <style>
     :root {
@@ -22,22 +24,16 @@
       --radius: 14px;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      margin: 0;
-      font-family: Arial, sans-serif;
+      font-family: 'Inter', Arial, sans-serif;
       background: var(--bg);
       color: var(--text);
-      padding: 20px;
+      padding: 20px 16px 40px;
     }
 
-    .container {
-      max-width: 900px;
-      margin: 0 auto;
-    }
+    .container { max-width: 700px; margin: 0 auto; }
 
     .card {
       background: var(--card);
@@ -47,173 +43,157 @@
       margin-bottom: 20px;
     }
 
-    h1 {
-      margin: 0;
-      font-size: 26px;
-      color: #0f172a;
-    }
-
-    .sub {
-      color: var(--muted);
-      font-size: 13px;
-      margin-top: 4px;
-    }
-
     .topo {
       display: flex;
       justify-content: space-between;
-      align-items: flex-start;
+      align-items: center;
       flex-wrap: wrap;
       gap: 12px;
     }
 
+    h1 { font-size: 1.4rem; font-weight: 700; color: #0f172a; }
+    .subtitulo { color: var(--muted); font-size: 0.82rem; margin-top: 4px; }
+
     button {
       border: none;
       border-radius: 10px;
-      padding: 12px 16px;
+      padding: 10px 18px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      font-family: inherit;
       cursor: pointer;
-      font-size: 14px;
-      font-weight: bold;
-      transition: 0.2s;
+      transition: opacity .2s, transform .1s;
     }
-
-    .btn-primary {
-      background: var(--primary);
-      color: white;
-    }
-
-    .btn-primary:hover {
-      background: var(--primary-hover);
-    }
-
-    .btn-danger {
-      background: #ef2525;
-      color: white;
-      width: 100%;
-      margin-top: 16px;
-    }
+    button:hover  { opacity: .88; }
+    button:active { transform: scale(.97); }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-danger  { background: var(--danger);  color: #fff; }
 
     .busca {
       width: 100%;
-      padding: 14px;
+      padding: 13px 14px;
+      border: 1.5px solid var(--border);
       border-radius: 10px;
-      border: 1px solid var(--border);
+      font-size: 0.95rem;
+      font-family: inherit;
       outline: none;
-      font-size: 14px;
+      transition: border-color .2s;
     }
-
-    .busca:focus {
-      border-color: var(--primary);
-    }
+    .busca:focus { border-color: var(--primary); }
 
     .resumo {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 10px;
-    }
-
-    .box {
-      padding: 12px;
-      border-radius: 10px;
-      background: #f9fafb;
-      border: 1px solid var(--border);
-      min-height: 72px;
-    }
-
-    .box .titulo {
-      font-size: 14px;
-      color: #111827;
-    }
-
-    .box strong {
-      font-size: 22px;
-      display: block;
-      margin-top: 6px;
-      color: #111827;
-    }
-
-    .lista {
-      display: grid;
-      gap: 8px;
-    }
-
-    .item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 14px;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      background: white;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
       gap: 12px;
     }
 
-    .item.pago {
-      background: var(--success-bg);
-      border-color: #bbf7d0;
+    .box {
+      border-radius: 12px;
+      padding: 14px;
+      background: #f9fafb;
+      border: 1px solid var(--border);
     }
+    .box.pagos     { background: var(--success-bg); border-color: #bbf7d0; }
+    .box.pendentes { background: var(--danger-bg);  border-color: #fecaca; }
 
-    .left {
+    .box .titulo {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-bottom: 6px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    .box .valor { font-size: 1.5rem; font-weight: 700; color: #0f172a; }
+
+    .lista { display: grid; gap: 8px; }
+
+    .item {
       display: flex;
       align-items: center;
-      gap: 10px;
-      flex: 1;
-      min-width: 0;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #fff;
+      transition: box-shadow .15s, transform .15s;
+    }
+    .item:hover { box-shadow: 0 4px 14px rgba(0,0,0,.07); transform: translateY(-1px); }
+    .item.pago  { background: var(--success-bg); border-color: #bbf7d0; }
+    .item.escondido { display: none; }
+
+    .info-pessoa {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      gap: 12px;
     }
 
-    .nome {
-      font-size: 14px;
-      word-break: break-word;
-    }
+    .lado-esquerdo { display: flex; align-items: center; gap: 10px; }
+
+    .nome { font-size: 0.95rem; }
+    .item.pago .nome { color: var(--success); font-weight: 600; }
 
     .status {
-      font-size: 11px;
-      padding: 6px 10px;
+      font-size: 0.72rem;
+      padding: 5px 10px;
       border-radius: 999px;
-      font-weight: bold;
-      min-width: 92px;
+      font-weight: 700;
+      min-width: 88px;
       text-align: center;
     }
+    .status.pago     { background: #bbf7d0; color: #065f46; }
+    .status.pendente { background: #fecaca; color: #991b1b; }
 
-    .status.pago {
-      background: #bbf7d0;
-      color: #065f46;
-    }
-
-    .status.pendente {
-      background: #fecaca;
-      color: #b91c1c;
-    }
-
-    .escondido {
-      display: none;
-    }
-
-    #lista input[type="checkbox"] {
-      width: 16px;
-      height: 16px;
+    input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: #22c55e;
       cursor: pointer;
       flex-shrink: 0;
     }
 
-    @media (max-width: 600px) {
-      .item {
-        padding: 10px 12px;
-      }
+    .muted { color: var(--muted); font-size: 0.8rem; margin-top: 12px; }
 
-      .status {
-        min-width: 88px;
-        font-size: 10px;
-      }
+    #syncAviso {
+      padding: 10px 14px;
+      background: #fef9c3;
+      color: #854d0e;
+      border: 1px solid #fde68a;
+      border-radius: 10px;
+      font-size: 0.82rem;
+      margin-bottom: 16px;
+    }
 
-      .nome {
-        font-size: 13px;
-      }
+    @media (max-width: 480px) {
+      h1 { font-size: 1.1rem; }
+      .item { padding: 10px 12px; }
+      .status { min-width: 76px; font-size: 0.68rem; }
     }
   </style>
 
+  <script src="auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyA4jZeE9qpW50GLsjohuVDMIjOmC9Lyig0",
+      authDomain: "pagamentos-b0709.firebaseapp.com",
+      projectId: "pagamentos-b0709",
+      storageBucket: "pagamentos-b0709.firebasestorage.app",
+      messagingSenderId: "146576431226",
+      appId: "1:146576431226:web:8c4f2221281c5a5a5fc3c3",
+      measurementId: "G-5BF79SPNQN"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db   = firebase.firestore();
+    checkAuth();
+    auth.signInAnonymously().catch(e => console.warn("Firebase Auth indisponivel:", e.message));
+  </script>
 </head>
 <body>
   <div class="container">
@@ -221,696 +201,61 @@
     <div class="card">
       <div class="topo">
         <div>
-          <h1>Controle de Pagamentos</h1>
-          <div class="sub">Sincronizado em tempo real</div>
+          <h1>🎯 Controle de Pagamentos</h1>
+          <div class="subtitulo">Lista mensal de cotas com sincronização em tempo real</div>
         </div>
+        <button class="btn-danger" id="btnSair">Sair</button>
       </div>
-
-      <button class="btn-danger" id="btnSair">Sair</button>
     </div>
 
     <div class="card">
-      <input id="busca" class="busca" placeholder="Buscar nome..." type="text" />
+      <input type="text" id="busca" class="busca" placeholder="Buscar nome..." />
     </div>
 
     <div class="card">
       <div class="resumo">
         <div class="box">
-          <div class="titulo">Mês</div>
-          <strong id="mes">--</strong>
+          <div class="titulo">Mes</div>
+          <div class="valor" id="mesReferenciaTela">--</div>
         </div>
-
-        <div class="box">
+        <div class="box pagos">
           <div class="titulo">Pagos</div>
-          <strong id="pagos">0</strong>
+          <div class="valor" id="totalPagos">0</div>
         </div>
-
-        <div class="box">
+        <div class="box pendentes">
           <div class="titulo">Pendentes</div>
-          <strong id="pendentes">0</strong>
+          <div class="valor" id="totalPendentes">0</div>
         </div>
-
         <div class="box">
-          <div class="titulo">Total</div>
-          <strong id="total">R$ 0,00</strong>
+          <div class="titulo">Total arrecadado</div>
+          <div class="valor" id="totalArrecadado">R$ 0,00</div>
         </div>
       </div>
     </div>
 
     <div class="card">
       <div id="lista" class="lista"></div>
+      <div class="muted">Pessoas com pagamento fixo ficam marcadas automaticamente.</div>
     </div>
 
     <div class="card">
-      <button class="btn-primary" id="copiar">Copiar WhatsApp</button>
+      <button class="btn-primary" id="btnCopiar" style="width:100%;padding:14px;font-size:1rem;">
+        📋 Copiar para WhatsApp
+      </button>
     </div>
 
   </div>
 
   <script>
-    const firebaseConfig = {
-      apiKey: "SUA_API_KEY",
-      authDomain: "SEU_AUTH_DOMAIN",
-      projectId: "SEU_PROJECT_ID"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-
-    const VALOR_COTA = 19.60;
-
-    const nomes = [
-      "Alexsandro Teles","Aline Goes","Ana Paula Ribeiro","Andréia Dias","Angelo Miranda",
-      "Celina Rosa","Cilene Queiroz","Cláudio Matos","Dailza Araújo","Diego Barbosa",
-      "Editânia","Eduardo Oliveira","Emilson Barbosa","Evanice Santos",
-      "Fabiano Souza","Fátima Carvalho","Gersenildo França","Graça Teixeira",
-      "Helena Argolo","Isabela Santana","Ivana Guimarães","Jacira Miranda",
-      "Jadson Miranda","Jaílson Souza","Janmily Mendes","Joseane Oliveira",
-      "Juliana Oliveira","Leandro Nascimento","Lúcia Argolo",
-      "Luciene Oliveira","Manoel Messias","Manuela Rios","Marco Costa",
-      "Maria Espinheira","Mauro Kleber","Mônica Mota","Mônica Pereira",
-      "Patrícia Reis","Reijane Silva","Rodrigo Müller","Rosa Oliveira","Rose Santana",
-      "Simone Cunha","Sueli Ramos","Suely Santos","Tatiana Nascimento",
-      "Vânia Carvalho","Vilma Gravata","Vilma Patrícia","Wilson Dias"
-    ];
-
-    const PAGAMENTOS_FIXOS = {
-      "Jacira Miranda": "2026-12"
-    };
-
-    let estado = {};
-    let mes = new Date().toISOString().slice(0, 7);
-
-    const lista = document.getElementById("lista");
-    const busca = document.getElementById("busca");
-    const btnSair = document.getElementById("btnSair");
-    const btnCopiar = document.getElementById("copiar");
-
-    function getCheckboxes() {
-      return [...document.querySelectorAll('#lista input[type="checkbox"]')];
-    }
-
-    function formatarMes(valorMes) {
-      if (!valorMes || !valorMes.includes("-")) return valorMes || "--";
-
-      const [ano, mesNumero] = valorMes.split("-");
-      const data = new Date(Number(ano), Number(mesNumero) - 1, 1);
-
-      return data.toLocaleDateString("pt-BR", {
-        month: "long",
-        year: "numeric"
-      });
-    }
-
-    function formatarMoeda(valor) {
-      return valor.toLocaleString("pt-BR", {
-        style: "currency",
-        currency: "BRL"
-      });
-    }
-
-    function criarLista() {
-      lista.innerHTML = "";
-
-      nomes.forEach(nome => {
-        const div = document.createElement("div");
-        div.className = "item";
-        div.dataset.nome = nome.toLowerCase();
-
-        const left = document.createElement("div");
-        left.className = "left";
-
-        const cb = document.createElement("input");
-        cb.type = "checkbox";
-        cb.dataset.nome = nome;
-        cb.addEventListener("change", salvar);
-
-        const span = document.createElement("span");
-        span.className = "nome";
-        span.textContent = nome;
-
-        left.appendChild(cb);
-        left.appendChild(span);
-
-        const status = document.createElement("span");
-        status.className = "status pendente";
-        status.textContent = "PENDENTE";
-
-        div.appendChild(left);
-        div.appendChild(status);
-
-        lista.appendChild(div);
-      });
-    }
-
-    function aplicar() {
-      getCheckboxes().forEach(cb => {
-        const nome = cb.dataset.nome;
-        const item = cb.closest(".item");
-        const status = item.querySelector(".status");
-
-        const pagoFixo = PAGAMENTOS_FIXOS[nome] && mes <= PAGAMENTOS_FIXOS[nome];
-
-        if (pagoFixo) {
-          cb.checked = true;
-          cb.disabled = true;
-        } else {
-          cb.disabled = false;
-          cb.checked = !!estado[nome];
-        }
-
-        if (cb.checked) {
-          item.classList.add("pago");
-          status.className = "status pago";
-          status.textContent = "PAGO";
-        } else {
-          item.classList.remove("pago");
-          status.className = "status pendente";
-          status.textContent = "PENDENTE";
-        }
-      });
-
-      atualizarResumo();
-      aplicarBusca();
-    }
-
-    function atualizarResumo() {
-      const checks = getCheckboxes();
-      const pagos = checks.filter(c => c.checked).length;
-      const pendentes = checks.length - pagos;
-
-      document.getElementById("pagos").innerText = pagos;
-      document.getElementById("pendentes").innerText = pendentes;
-      document.getElementById("total").innerText = formatarMoeda(pagos * VALOR_COTA);
-      document.getElementById("mes").innerText = formatarMes(mes);
-    }
-
-    async function salvar() {
-      const novoEstado = {};
-
-      getCheckboxes().forEach(cb => {
-        if (!cb.disabled) {
-          novoEstado[cb.dataset.nome] = cb.checked;
-        }
-      });
-
-      estado = novoEstado;
-      aplicar();
-
-      try {
-        await db.collection("pagamentosControle").doc("ultimo").set({
-          mes: mes,
-          estado: estado
-        });
-      } catch (erro) {
-        console.error("Erro ao salvar:", erro);
-        alert("Erro ao salvar no Firebase.");
-      }
-    }
-
-    async function carregar() {
-      try {
-        const snap = await db.collection("pagamentosControle").doc("ultimo").get();
-
-        if (snap.exists) {
-          const dados = snap.data();
-          estado = dados.estado || {};
-          mes = dados.mes || mes;
-        }
-
-        aplicar();
-      } catch (erro) {
-        console.error("Erro ao carregar:", erro);
-      }
-    }
-
-    function tempoReal() {
-      db.collection("pagamentosControle").doc("ultimo")
-        .onSnapshot(
-          snap => {
-            if (snap.exists) {
-              const dados = snap.data();
-              estado = dados.estado || {};
-              mes = dados.mes || mes;
-              aplicar();
-            }
-          },
-          erro => {
-            console.error("Erro no tempo real:", erro);
-          }
-        );
-    }
-
-    function aplicarBusca() {
-      const termo = busca.value.toLowerCase().trim();
-
-      document.querySelectorAll(".item").forEach(item => {
-        item.classList.toggle("escondido", !item.dataset.nome.includes(termo));
-      });
-    }
-
-    async function copiarWhatsApp() {
-      const checks = getCheckboxes();
-      const pagos = [];
-      const pendentes = [];
-
-      checks.forEach(cb => {
-        if (cb.checked) {
-          pagos.push(cb.dataset.nome);
-        } else {
-          pendentes.push(cb.dataset.nome);
-        }
-      });
-
-      const totalArrecadado = (pagos.length * VALOR_COTA).toFixed(2).replace(".", ",");
-
-      let txt =
-`🎯 *COTA MENSAL – MEGA-SENA + LOTOFÁCIL*
-
-💰 *VALOR:* R$ ${VALOR_COTA.toFixed(2).replace(".", ",")}
-📅 *MÊS:* ${formatarMes(mes).toUpperCase()}
-
-━━━━━━━━━━━━━━
-✅ *COTAS PAGAS:* ${pagos.length}
-💵 *TOTAL ARRECADADO:* R$ ${totalArrecadado}
-━━━━━━━━━━━━━━
-
-📋 *PAGOS*
-`;
-
-      pagos.forEach((nome, i) => {
-        txt += `${String(i + 1).padStart(2, "0")} - ${nome} - *PG*\n`;
-      });
-
-      if (pendentes.length > 0) {
-        txt += `\n⚠️ *COTAS PENDENTES:* ${pendentes.length}\n`;
-        pendentes.forEach(nome => {
-          txt += `${nome}\n`;
-        });
-      }
-
-      try {
-        await navigator.clipboard.writeText(txt);
-        alert("Copiado!");
-      } catch (erro) {
-        console.error("Erro ao copiar:", erro);
-        alert("Não foi possível copiar.");
-      }
-    }
-
-    busca.addEventListener("input", aplicarBusca);
-
-    btnCopiar.addEventListener("click", copiarWhatsApp);
-
-    btnSair.addEventListener("click", () => {
-      if (typeof logout === "function") {
-        logout();
-      } else {
-        alert("Função logout() não encontrada.");
-      }
-    });
-
-    setInterval(carregar, 5000);
-
-    document.addEventListener("visibilitychange", () => {
-      if (!document.hidden) carregar();
-    });
-
-    window.addEventListener("focus", carregar);
-
-    criarLista();
-    carregar();
-    tempoReal();
-  </script>
-</body>
-</html><!DOCTYPE html>
-<html lang="pt-br">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Controle de Pagamentos</title>
-
-  <style>
-    :root {
-      --bg: #f5f7fb;
-      --card: #ffffff;
-      --text: #1f2937;
-      --muted: #6b7280;
-      --primary: #2563eb;
-      --primary-hover: #1d4ed8;
-      --success: #16a34a;
-      --success-bg: #dcfce7;
-      --danger: #dc2626;
-      --danger-bg: #fee2e2;
-      --border: #e5e7eb;
-      --shadow: 0 10px 25px rgba(0,0,0,0.08);
-      --radius: 14px;
-    }
-
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      padding: 20px;
-    }
-
-    .container {
-      max-width: 900px;
-      margin: 0 auto;
-    }
-
-    .card {
-      background: var(--card);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 20px;
-      margin-bottom: 20px;
-    }
-
-    h1 {
-      margin: 0;
-      font-size: 26px;
-    }
-
-    .sub {
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    .topo {
-      display: flex;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-
-    button {
-      border: none;
-      border-radius: 10px;
-      padding: 12px;
-      cursor: pointer;
-      font-size: 14px;
-    }
-
-    .btn-primary {
-      background: var(--primary);
-      color: white;
-    }
-
-    .btn-danger {
-      background: var(--danger);
-      color: white;
-    }
-
-    .busca {
-      width: 100%;
-      padding: 14px;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-    }
-
-    .resumo {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px,1fr));
-      gap: 10px;
-    }
-
-    .box {
-      padding: 12px;
-      border-radius: 10px;
-      background: #f9fafb;
-      border: 1px solid var(--border);
-    }
-
-    .box strong {
-      font-size: 20px;
-      display: block;
-      margin-top: 5px;
-    }
-
-    .lista {
-      display: grid;
-      gap: 8px;
-    }
-
-    .item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      background: white;
-    }
-
-    .item.pago {
-      background: var(--success-bg);
-    }
-
-    .nome {
-      margin-left: 8px;
-    }
-
-    .status {
-      font-size: 12px;
-      padding: 4px 8px;
-      border-radius: 999px;
-      font-weight: bold;
-    }
-
-    .status.pago {
-      background: #bbf7d0;
-      color: #065f46;
-    }
-
-    .status.pendente {
-      background: #fecaca;
-      color: #7f1d1d;
-    }
-
-    .escondido {
-      display: none;
-    }
-  </style>
-
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-</head>
-
-<body>
-<div class="container">
-
-  <div class="card topo">
-    <div>
-      <h1>Controle de Pagamentos</h1>
-      <div class="sub">Sincronizado em tempo real</div>
-    </div>
-    <button class="btn-danger" id="btnSair">Sair</button>
-  </div>
-
-  <div class="card">
-    <input id="busca" class="busca" placeholder="Buscar nome..." />
-  </div>
-
-  <div class="card resumo">
-    <div class="box">Mês<strong id="mes"></strong></div>
-    <div class="box">Pagos<strong id="pagos"></strong></div>
-    <div class="box">Pendentes<strong id="pendentes"></strong></div>
-    <div class="box">Total<strong id="total"></strong></div>
-  </div>
-
-  <div class="card">
-    <div id="lista" class="lista"></div>
-  </div>
-
-  <div class="card">
-    <button class="btn-primary" id="copiar">Copiar WhatsApp</button>
-  </div>
-
-</div>
-
-<script>
-const firebaseConfig = {
-  apiKey: "SUA_API_KEY",
-  authDomain: "SEU_AUTH_DOMAIN",
-  projectId: "SEU_PROJECT_ID",
-};
-
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-
-const nomes = [
-"Alexsandro Teles","Aline Goes","Ana Paula Ribeiro","Andréia Dias","Angelo Miranda",
-"Celina Rosa","Cilene Queiroz","Cláudio Matos","Dailza Araújo","Diego Barbosa",
-"Editânia","Eduardo Oliveira","Emilson Barbosa","Evanice Santos",
-"Fabiano Souza","Fátima Carvalho","Gersenildo França","Graça Teixeira",
-"Helena Argolo","Isabela Santana","Ivana Guimarães","Jacira Miranda",
-"Jadson Miranda","Jaílson Souza","Janmily Mendes","Joseane Oliveira",
-"Juliana Oliveira","Leandro Nascimento","Lúcia Argolo",
-"Luciene Oliveira","Manoel Messias","Manuela Rios","Marco Costa",
-"Maria Espinheira","Mauro Kleber","Mônica Mota","Mônica Pereira",
-"Patrícia Reis","Reijane Silva","Rodrigo Müller","Rosa Oliveira","Rose Santana",
-"Simone Cunha","Sueli Ramos","Suely Santos","Tatiana Nascimento",
-"Vânia Carvalho","Vilma Gravata","Vilma Patrícia","Wilson Dias"
-];
-
-let estado = {};
-let mes = new Date().toISOString().slice(0,7);
-
-const lista = document.getElementById("lista");
-
-function criarLista(){
-  lista.innerHTML="";
-  nomes.forEach(nome=>{
-    const div=document.createElement("div");
-    div.className="item";
-    div.dataset.nome=nome.toLowerCase();
-
-    const left=document.createElement("div");
-
-    const cb=document.createElement("input");
-    cb.type="checkbox";
-    cb.dataset.nome=nome;
-    cb.onchange=salvar;
-
-    const span=document.createElement("span");
-    span.className="nome";
-    span.textContent=nome;
-
-    left.append(cb,span);
-
-    const status=document.createElement("span");
-    status.className="status pendente";
-    status.textContent="PENDENTE";
-
-    div.append(left,status);
-    lista.appendChild(div);
-  });
-}
-
-function aplicar(){
-  document.querySelectorAll("input").forEach(cb=>{
-    const nome=cb.dataset.nome;
-    const item=cb.closest(".item");
-    const status=item.querySelector(".status");
-
-    cb.checked=!!estado[nome];
-
-    if(cb.checked){
-      item.classList.add("pago");
-      status.className="status pago";
-      status.textContent="PAGO";
-    }else{
-      item.classList.remove("pago");
-      status.className="status pendente";
-      status.textContent="PENDENTE";
-    }
-  });
-
-  atualizarResumo();
-}
-
-function atualizarResumo(){
-  const checks=[...document.querySelectorAll("input")];
-  const pagos=checks.filter(c=>c.checked).length;
-  const pend=checks.length-pagos;
-
-  document.getElementById("pagos").innerText=pagos;
-  document.getElementById("pendentes").innerText=pend;
-  document.getElementById("total").innerText="R$ "+(pagos*19.6).toFixed(2);
-  document.getElementById("mes").innerText=mes;
-}
-
-async function salvar(){
-  document.querySelectorAll("input").forEach(cb=>{
-    estado[cb.dataset.nome]=cb.checked;
-  });
-
-  await db.collection("pagamentosControle").doc("ultimo").set({
-    mes: mes,
-    estado: estado
-  });
-
-  aplicar();
-}
-
-async function carregar(){
-  const snap=await db.collection("pagamentosControle").doc("ultimo").get();
-
-  if(snap.exists){
-    estado=snap.data().estado||{};
-    mes=snap.data().mes||mes;
-  }
-
-  aplicar();
-}
-
-function tempoReal(){
-  db.collection("pagamentosControle").doc("ultimo")
-  .onSnapshot(snap=>{
-    if(snap.exists){
-      estado=snap.data().estado||{};
-      mes=snap.data().mes||mes;
-      aplicar();
-    }
-  });
-}
-
-// busca
-document.getElementById("busca").oninput=e=>{
-  const t=e.target.value.toLowerCase();
-  document.querySelectorAll(".item").forEach(i=>{
-    i.classList.toggle("escondido",!i.dataset.nome.includes(t));
-  });
-};
-
-// copiar
-document.getElementById("copiar").onclick=()=>{
-  let txt="";
-  document.querySelectorAll("input").forEach(cb=>{
-    txt+= (cb.checked?"✅ ":"❌ ") + cb.dataset.nome + "\n";
-  });
-  navigator.clipboard.writeText(txt);
-  alert("Copiado!");
-};
-
-// reforços mobile
-setInterval(carregar,5000);
-document.addEventListener("visibilitychange",()=>{ if(!document.hidden) carregar(); });
-window.addEventListener("focus",carregar);
-
-// iniciar
-criarLista();
-carregar();
-tempoReal();
-
-</script>
-
-</body>
-</html><script>
-  const firebaseConfig = {
-    apiKey: "SUA_API_KEY",
-    authDomain: "SEU_AUTH_DOMAIN",
-    projectId: "SEU_PROJECT_ID",
-    storageBucket: "SEU_STORAGE_BUCKET",
-    messagingSenderId: "SEU_MESSAGING_SENDER_ID",
-    appId: "SEU_APP_ID"
-  };
-
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
-
   const VALOR_COTA = 19.60;
-
-  const hoje = new Date();
-  const MES_ATUAL = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, "0")}`;
+  const hoje       = new Date();
+  const MES_ATUAL  = hoje.getFullYear() + "-" + String(hoje.getMonth() + 1).padStart(2, "0");
 
   let MES_REFERENCIA = MES_ATUAL;
-  let ESTADO_ATUAL = {};
-  let intervaloRecarga = null;
+  let ESTADO_ATUAL   = {};
+  let SYNC_ATIVO     = true;
+  let listenerUnsub  = null;
+  let intervalIdSync = null;
 
   const nomes = [
     "Alexsandro Teles","Aline Goes","Ana Paula Ribeiro","Andréia Dias","Angelo Miranda",
@@ -927,45 +272,55 @@ tempoReal();
     "Vânia Carvalho","Vilma Gravata","Vilma Patrícia","Wilson Dias"
   ];
 
-  const PAGAMENTOS_FIXOS = {
-    "Jacira Miranda": "2026-12"
-  };
+  const PAGAMENTOS_FIXOS = { "Jacira Miranda": "2026-12" };
 
-  const lista = document.getElementById("lista");
-  const busca = document.getElementById("busca");
-  const btnCopiar = document.getElementById("btnCopiar");
-  const btnSair = document.getElementById("btnSair");
-
-  const totalPagosEl = document.getElementById("totalPagos");
-  const totalPendentesEl = document.getElementById("totalPendentes");
-  const totalArrecadadoEl = document.getElementById("totalArrecadado");
+  const lista               = document.getElementById("lista");
+  const busca               = document.getElementById("busca");
+  const btnCopiar           = document.getElementById("btnCopiar");
+  const btnSair             = document.getElementById("btnSair");
+  const totalPagosEl        = document.getElementById("totalPagos");
+  const totalPendentesEl    = document.getElementById("totalPendentes");
+  const totalArrecadadoEl   = document.getElementById("totalArrecadado");
   const mesReferenciaTelaEl = document.getElementById("mesReferenciaTela");
 
-  function nomeMesReferencia(mesReferencia) {
-    const [anoStr, mesStr] = mesReferencia.split("-");
-    const ano = Number(anoStr);
-    const mes = Number(mesStr);
-
-    return new Date(ano, mes - 1, 1)
+  function nomeMesReferencia(ref) {
+    const [a, m] = ref.split("-");
+    return new Date(Number(a), Number(m) - 1, 1)
       .toLocaleString("pt-BR", { month: "long", year: "numeric" })
       .toUpperCase();
   }
 
-  function numeroMesReferencia(mesReferencia) {
-    const [, mesStr] = mesReferencia.split("-");
-    return String(Number(mesStr)).padStart(2, "0");
+  function numeroMesReferencia(ref) {
+    return String(Number(ref.split("-")[1])).padStart(2, "0");
   }
 
-  function formatarMoeda(valor) {
-    return valor.toLocaleString("pt-BR", {
-      style: "currency",
-      currency: "BRL"
-    });
+  function formatarMoeda(v) {
+    return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  }
+
+  function erroPermissao(e) {
+    if (!e) return false;
+    if (e.code === "permission-denied") return true;
+    return String(e.message || "").toLowerCase().includes("insufficient permissions");
+  }
+
+  function desativarSync(e) {
+    if (!SYNC_ATIVO) return;
+    SYNC_ATIVO = false;
+    if (typeof listenerUnsub === "function") { listenerUnsub(); listenerUnsub = null; }
+    if (intervalIdSync) { clearInterval(intervalIdSync); intervalIdSync = null; }
+    console.warn("Sync desativado por falta de permissao:", e);
+    let aviso = document.getElementById("syncAviso");
+    if (!aviso) {
+      aviso = document.createElement("div");
+      aviso.id = "syncAviso";
+      document.querySelector(".container").insertBefore(aviso, document.querySelector(".container").firstChild);
+    }
+    aviso.textContent = "Sem permissao no Firestore. App em modo local. Habilite Anonymous Auth no Firebase Console.";
   }
 
   function criarLista() {
     lista.innerHTML = "";
-
     nomes.forEach(nome => {
       const item = document.createElement("div");
       item.className = "item";
@@ -974,1159 +329,131 @@ tempoReal();
       const info = document.createElement("div");
       info.className = "info-pessoa";
 
-      const ladoEsquerdo = document.createElement("div");
-      ladoEsquerdo.style.display = "flex";
-      ladoEsquerdo.style.alignItems = "center";
-      ladoEsquerdo.style.gap = "12px";
+      const lado = document.createElement("div");
+      lado.className = "lado-esquerdo";
 
-      const checkbox = document.createElement("input");
-      checkbox.type = "checkbox";
-      checkbox.dataset.nome = nome;
-      checkbox.addEventListener("change", salvarEstado);
+      const cb = document.createElement("input");
+      cb.type = "checkbox";
+      cb.dataset.nome = nome;
+      cb.addEventListener("change", salvarEstado);
 
       const nomeEl = document.createElement("span");
       nomeEl.className = "nome";
       nomeEl.textContent = nome;
 
-      ladoEsquerdo.appendChild(checkbox);
-      ladoEsquerdo.appendChild(nomeEl);
+      lado.appendChild(cb);
+      lado.appendChild(nomeEl);
 
       const status = document.createElement("span");
       status.className = "status pendente";
       status.textContent = "PENDENTE";
 
-      info.appendChild(ladoEsquerdo);
+      info.appendChild(lado);
       info.appendChild(status);
-
       item.appendChild(info);
       lista.appendChild(item);
     });
   }
 
   function atualizarResumo() {
-    const checkboxes = [...document.querySelectorAll('input[type="checkbox"]')];
-    const pagos = checkboxes.filter(cb => cb.checked).length;
-    const pendentes = checkboxes.length - pagos;
-    const total = pagos * VALOR_COTA;
-
-    totalPagosEl.textContent = pagos;
-    totalPendentesEl.textContent = pendentes;
-    totalArrecadadoEl.textContent = formatarMoeda(total);
+    const cbs   = [...document.querySelectorAll('input[type="checkbox"]')];
+    const pagos = cbs.filter(c => c.checked).length;
+    totalPagosEl.textContent        = pagos;
+    totalPendentesEl.textContent    = cbs.length - pagos;
+    totalArrecadadoEl.textContent   = formatarMoeda(pagos * VALOR_COTA);
     mesReferenciaTelaEl.textContent = nomeMesReferencia(MES_REFERENCIA);
   }
 
   function aplicarEstado() {
     document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
-      const nome = cb.dataset.nome;
-      const item = cb.closest(".item");
+      const nome   = cb.dataset.nome;
+      const item   = cb.closest(".item");
       const nomeEl = item.querySelector(".nome");
       const status = item.querySelector(".status");
+      const fixo   = PAGAMENTOS_FIXOS[nome] && MES_REFERENCIA <= PAGAMENTOS_FIXOS[nome];
 
-      if (PAGAMENTOS_FIXOS[nome] && MES_REFERENCIA <= PAGAMENTOS_FIXOS[nome]) {
-        cb.checked = true;
-        cb.disabled = true;
-      } else {
-        cb.disabled = false;
-        cb.checked = !!ESTADO_ATUAL[nome];
-      }
+      if (fixo) { cb.checked = true; cb.disabled = true; }
+      else       { cb.disabled = false; cb.checked = !!ESTADO_ATUAL[nome]; }
 
       if (cb.checked) {
-        item.classList.add("pago");
-        status.className = "status pago";
-        status.textContent = "PAGO";
+        item.classList.add("pago"); nomeEl.classList.add("pago");
+        status.className = "status pago"; status.textContent = "PAGO";
       } else {
-        item.classList.remove("pago");
-        status.className = "status pendente";
-        status.textContent = "PENDENTE";
+        item.classList.remove("pago"); nomeEl.classList.remove("pago");
+        status.className = "status pendente"; status.textContent = "PENDENTE";
       }
     });
-
     atualizarResumo();
     aplicarBusca();
   }
 
   async function carregarDoServidor() {
+    if (!SYNC_ATIVO) { aplicarEstado(); return; }
     try {
-      const docRef = db.collection("pagamentosControle").doc("ultimo");
-
-      const snap = await docRef.get({ source: "server" });
-
+      const snap = await db.collection("pagamentosControle").doc("ultimo").get();
       if (snap.exists) {
-        const data = snap.data();
-
-        if (data && data.mes && data.estado) {
-          MES_REFERENCIA = data.mes;
-          ESTADO_ATUAL = data.estado || {};
-        } else {
-          MES_REFERENCIA = MES_ATUAL;
-          ESTADO_ATUAL = {};
-        }
+        const d = snap.data();
+        MES_REFERENCIA = d?.mes    || MES_ATUAL;
+        ESTADO_ATUAL   = d?.estado || {};
       } else {
-        MES_REFERENCIA = MES_ATUAL;
-        ESTADO_ATUAL = {};
+        MES_REFERENCIA = MES_ATUAL; ESTADO_ATUAL = {};
       }
-
       aplicarEstado();
-    } catch (erro) {
-      console.error("Erro ao carregar do servidor:", erro);
+    } catch (e) {
+      if (erroPermissao(e)) { desativarSync(e); return; }
+      console.error("Erro ao carregar:", e);
     }
   }
 
   async function salvarEstado() {
     const estado = {};
-
     document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
-      if (!cb.disabled) {
-        estado[cb.dataset.nome] = cb.checked;
-      }
+      if (!cb.disabled) estado[cb.dataset.nome] = cb.checked;
     });
-
     ESTADO_ATUAL = estado;
     aplicarEstado();
-
+    if (!SYNC_ATIVO) return;
     try {
-      const docRef = db.collection("pagamentosControle").doc("ultimo");
-      await docRef.set({
-        mes: MES_REFERENCIA,
-        estado: ESTADO_ATUAL
-      });
-    } catch (erro) {
-      console.error("Erro ao salvar no servidor:", erro);
-      alert("Erro ao salvar no Firebase.");
+      await db.collection("pagamentosControle").doc("ultimo").set({ mes: MES_REFERENCIA, estado: ESTADO_ATUAL });
+    } catch (e) {
+      if (erroPermissao(e)) { desativarSync(e); return; }
+      console.error("Erro ao salvar:", e);
     }
   }
 
   function iniciarListenerTempoReal() {
-    const docRef = db.collection("pagamentosControle").doc("ultimo");
-
-    docRef.onSnapshot(
-      (snap) => {
-        if (snap.exists) {
-          const data = snap.data();
-
-          if (data && data.mes && data.estado) {
-            MES_REFERENCIA = data.mes;
-            ESTADO_ATUAL = data.estado || {};
-          } else {
-            MES_REFERENCIA = MES_ATUAL;
-            ESTADO_ATUAL = {};
-          }
-        } else {
-          MES_REFERENCIA = MES_ATUAL;
-          ESTADO_ATUAL = {};
-        }
-
-        aplicarEstado();
-      },
-      (erro) => {
-        console.error("Erro no listener em tempo real:", erro);
-      }
-    );
-  }
-
-  function iniciarRecargaPeriodica() {
-    if (intervaloRecarga) clearInterval(intervaloRecarga);
-    intervaloRecarga = setInterval(() => {
-      carregarDoServidor();
-    }, 5000);
+    if (!SYNC_ATIVO) return;
+    listenerUnsub = db.collection("pagamentosControle").doc("ultimo").onSnapshot(snap => {
+      if (snap.exists) {
+        const d = snap.data();
+        MES_REFERENCIA = d?.mes    || MES_ATUAL;
+        ESTADO_ATUAL   = d?.estado || {};
+      } else { MES_REFERENCIA = MES_ATUAL; ESTADO_ATUAL = {}; }
+      aplicarEstado();
+    }, e => {
+      if (erroPermissao(e)) { desativarSync(e); return; }
+      console.error("Erro no listener:", e);
+    });
   }
 
   function aplicarBusca() {
     const termo = busca.value.trim().toLowerCase();
-
     document.querySelectorAll(".item").forEach(item => {
-      const nome = item.dataset.nome;
-      item.classList.toggle("escondido", !nome.includes(termo));
+      item.classList.toggle("escondido", !item.dataset.nome.includes(termo));
     });
   }
 
   async function copiarResultados() {
-    const pagos = [];
-    const pendentes = [];
-
+    const pagos = [], pendentes = [];
     document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
-      if (cb.checked) {
-        pagos.push(cb.dataset.nome);
-      } else {
-        pendentes.push(cb.dataset.nome);
-      }
+      (cb.checked ? pagos : pendentes).push(cb.dataset.nome);
     });
-
-    const usarArroba = pendentes.length <= 10;
+    const usarArroba      = pendentes.length <= 10;
     const totalArrecadado = (pagos.length * VALOR_COTA).toFixed(2).replace(".", ",");
-    const NOME_MES = nomeMesReferencia(MES_REFERENCIA);
-    const MES_NUMERO = numeroMesReferencia(MES_REFERENCIA);
+    const NOME_MES        = nomeMesReferencia(MES_REFERENCIA);
+    const MES_NUMERO      = numeroMesReferencia(MES_REFERENCIA);
 
     let texto =
-`🎯 *COTA MENSAL – MEGA-SENA + LOTOFÁCIL*
-
-💰 *VALOR:* R$ ${VALOR_COTA.toFixed(2).replace(".", ",")}
-📅 *MÊS:* ${NOME_MES}
-⏰ *PAGAMENTO ATÉ:* 09/${MES_NUMERO}
-
-🔑 *PIX:* 71999989616
-
-🎰 01 Jogo de *09 dezenas* na *Mega-Sena*
-🎰 01 Jogo de *17 dezenas* na *Lotofácil*
-
-━━━━━━━━━━━━━━
-✅ *COTAS PAGAS:* ${pagos.length}
-💵 *TOTAL ARRECADADO:* R$ ${totalArrecadado}
-━━━━━━━━━━━━━━
-
-📋 *PAGOS*
-`;
-
-    pagos.forEach((nome, i) => {
-      texto += `${String(i + 1).padStart(2, "0")} - ${nome} - *PG*\n`;
-    });
-
-    if (pendentes.length > 0) {
-      texto += `\n⚠️ *COTAS PENDENTES:* ${pendentes.length}\n`;
-      if (usarArroba) texto += "👇 *ATENÇÃO*\n";
-
-      pendentes.forEach(nome => {
-        texto += usarArroba ? `@${nome}\n` : `${nome}\n`;
-      });
-    }
-
-    try {
-      await navigator.clipboard.writeText(texto);
-      alert("Texto copiado para o WhatsApp ✅");
-    } catch (erro) {
-      console.error("Erro ao copiar:", erro);
-      alert("Não foi possível copiar o texto.");
-    }
-  }
-
-  busca.addEventListener("input", aplicarBusca);
-
-  btnCopiar.addEventListener("click", copiarResultados);
-
-  btnSair.addEventListener("click", () => {
-    if (typeof logout === "function") {
-      logout();
-    } else {
-      alert("Função logout() não encontrada.");
-    }
-  });
-
-  document.addEventListener("visibilitychange", () => {
-    if (!document.hidden) {
-      carregarDoServidor();
-    }
-  });
-
-  window.addEventListener("focus", carregarDoServidor);
-
-  criarLista();
-  carregarDoServidor();
-  iniciarListenerTempoReal();
-  iniciarRecargaPeriodica();
-</script><!DOCTYPE html>
-<html lang="pt-br">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Controle de Pagamentos</title>
-
-  <style>
-    :root {
-      --bg: #f5f7fb;
-      --card: #ffffff;
-      --text: #1f2937;
-      --muted: #6b7280;
-      --primary: #2563eb;
-      --primary-hover: #1d4ed8;
-      --success: #16a34a;
-      --success-bg: #dcfce7;
-      --danger: #dc2626;
-      --danger-bg: #fee2e2;
-      --border: #e5e7eb;
-      --shadow: 0 10px 25px rgba(0,0,0,0.08);
-      --radius: 14px;
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      padding: 20px;
-    }
-
-    .container {
-      max-width: 900px;
-      margin: 0 auto;
-    }
-
-    .card {
-      background: var(--card);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 20px;
-      margin-bottom: 20px;
-    }
-
-    .topo {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-
-    h1 {
-      margin: 0;
-      font-size: 28px;
-    }
-
-    .subtitulo {
-      margin-top: 6px;
-      color: var(--muted);
-      font-size: 14px;
-    }
-
-    .acoes-topo {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    button {
-      border: none;
-      border-radius: 10px;
-      padding: 12px 16px;
-      font-size: 15px;
-      cursor: pointer;
-      transition: 0.2s;
-    }
-
-    .btn-primary {
-      background: var(--primary);
-      color: white;
-    }
-
-    .btn-primary:hover {
-      background: var(--primary-hover);
-    }
-
-    .btn-danger {
-      background: var(--danger);
-      color: white;
-    }
-
-    .btn-danger:hover {
-      opacity: 0.9;
-    }
-
-    .busca {
-      width: 100%;
-      padding: 14px;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      font-size: 15px;
-      outline: none;
-    }
-
-    .busca:focus {
-      border-color: var(--primary);
-    }
-
-    .resumo {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 14px;
-    }
-
-    .box {
-      border-radius: 12px;
-      padding: 16px;
-      background: #f9fafb;
-      border: 1px solid var(--border);
-    }
-
-    .box .titulo {
-      font-size: 13px;
-      color: var(--muted);
-      margin-bottom: 8px;
-    }
-
-    .box .valor {
-      font-size: 24px;
-      font-weight: bold;
-    }
-
-    .box.pagos {
-      background: var(--success-bg);
-      border-color: #bbf7d0;
-    }
-
-    .box.pendentes {
-      background: var(--danger-bg);
-      border-color: #fecaca;
-    }
-
-    .lista {
-      display: grid;
-      gap: 10px;
-    }
-
-    .item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 14px;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      background: #fff;
-      transition: 0.2s;
-    }
-
-    .item:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 6px 16px rgba(0,0,0,0.05);
-    }
-
-    .item.escondido {
-      display: none;
-    }
-
-    .item.pago {
-      background: var(--success-bg);
-      border-color: #bbf7d0;
-    }
-
-    .item.pago .nome {
-      color: var(--success);
-      font-weight: bold;
-    }
-
-    .info-pessoa {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .nome {
-      font-size: 15px;
-    }
-
-    .status {
-      font-size: 12px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      font-weight: bold;
-      min-width: 90px;
-      text-align: center;
-    }
-
-    .status.pago {
-      background: #bbf7d0;
-      color: #166534;
-    }
-
-    .status.pendente {
-      background: #fecaca;
-      color: #991b1b;
-    }
-
-    .rodape-acoes {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .muted {
-      color: var(--muted);
-      font-size: 13px;
-      margin-top: 10px;
-    }
-
-    input[type="checkbox"] {
-      width: 20px;
-      height: 20px;
-      cursor: pointer;
-    }
-
-    @media (max-width: 600px) {
-      h1 {
-        font-size: 22px;
-      }
-
-      .item {
-        align-items: flex-start;
-        flex-direction: column;
-      }
-
-      .info-pessoa {
-        width: 100%;
-        justify-content: space-between;
-      }
-
-      .status {
-        min-width: auto;
-      }
-
-      .acoes-topo,
-      .rodape-acoes {
-        width: 100%;
-      }
-
-      .acoes-topo button,
-      .rodape-acoes button {
-        width: 100%;
-      }
-    }
-  </style>
-
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-</head>
-<body>
-  <div class="container">
-
-    <div class="card">
-      <div class="topo">
-        <div>
-          <h1>Controle de Pagamentos</h1>
-          <div class="subtitulo">Lista mensal de cotas com sincronização em tempo real</div>
-        </div>
-
-        <div class="acoes-topo">
-          <button class="btn-danger" id="btnSair">Sair</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <input
-        type="text"
-        id="busca"
-        class="busca"
-        placeholder="Buscar nome..."
-      />
-    </div>
-
-    <div class="card">
-      <div class="resumo">
-        <div class="box">
-          <div class="titulo">Mês de referência</div>
-          <div class="valor" id="mesReferenciaTela">--</div>
-        </div>
-
-        <div class="box pagos">
-          <div class="titulo">Pagos</div>
-          <div class="valor" id="totalPagos">0</div>
-        </div>
-
-        <div class="box pendentes">
-          <div class="titulo">Pendentes</div>
-          <div class="valor" id="totalPendentes">0</div>
-        </div>
-
-        <div class="box">
-          <div class="titulo">Total arrecadado</div>
-          <div class="valor" id="totalArrecadado">R$ 0,00</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div id="lista" class="lista"></div>
-
-      <div class="muted">
-        Pessoas com pagamento fixo ficam marcadas automaticamente.
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="rodape-acoes">
-        <button class="btn-primary" id="btnCopiar">Copiar para WhatsApp</button>
-      </div>
-    </div>
-
-  </div>
-
-  <script>
-    // ================= FIREBASE =================
-    const firebaseConfig = {
-      apiKey: "SUA_API_KEY",
-      authDomain: "SEU_AUTH_DOMAIN",
-      projectId: "SEU_PROJECT_ID",
-      storageBucket: "SEU_STORAGE_BUCKET",
-      messagingSenderId: "SEU_MESSAGING_SENDER_ID",
-      appId: "SEU_APP_ID"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-
-    // ================= CONFIG =================
-    const VALOR_COTA = 19.60;
-
-    const hoje = new Date();
-    const MES_ATUAL = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, "0")}`;
-
-    let MES_REFERENCIA = MES_ATUAL;
-    let ESTADO_ATUAL = {};
-
-    const nomes = [
-      "Alexsandro Teles","Aline Goes","Ana Paula Ribeiro","Andréia Dias","Angelo Miranda",
-      "Celina Rosa","Cilene Queiroz","Cláudio Matos","Dailza Araújo","Diego Barbosa",
-      "Editânia","Eduardo Oliveira","Emilson Barbosa","Evanice Santos",
-      "Fabiano Souza","Fátima Carvalho","Gersenildo França","Graça Teixeira",
-      "Helena Argolo","Isabela Santana","Ivana Guimarães","Jacira Miranda",
-      "Jadson Miranda","Jaílson Souza","Janmily Mendes","Joseane Oliveira",
-      "Juliana Oliveira","Leandro Nascimento","Lúcia Argolo",
-      "Luciene Oliveira","Manoel Messias","Manuela Rios","Marco Costa",
-      "Maria Espinheira","Mauro Kleber","Mônica Mota","Mônica Pereira",
-      "Patrícia Reis","Reijane Silva","Rodrigo Müller","Rosa Oliveira","Rose Santana",
-      "Simone Cunha","Sueli Ramos","Suely Santos","Tatiana Nascimento",
-      "Vânia Carvalho","Vilma Gravata","Vilma Patrícia","Wilson Dias"
-    ];
-
-    const PAGAMENTOS_FIXOS = {
-      "Jacira Miranda": "2026-12"
-    };
-
-    // ================= ELEMENTOS =================
-    const lista = document.getElementById("lista");
-    const busca = document.getElementById("busca");
-    const btnCopiar = document.getElementById("btnCopiar");
-    const btnSair = document.getElementById("btnSair");
-
-    const totalPagosEl = document.getElementById("totalPagos");
-    const totalPendentesEl = document.getElementById("totalPendentes");
-    const totalArrecadadoEl = document.getElementById("totalArrecadado");
-    const mesReferenciaTelaEl = document.getElementById("mesReferenciaTela");
-
-    // ================= FUNÇÕES =================
-    function nomeMesReferencia(mesReferencia) {
-      const [anoStr, mesStr] = mesReferencia.split("-");
-      const ano = Number(anoStr);
-      const mes = Number(mesStr);
-
-      return new Date(ano, mes - 1, 1)
-        .toLocaleString("pt-BR", { month: "long", year: "numeric" })
-        .toUpperCase();
-    }
-
-    function numeroMesReferencia(mesReferencia) {
-      const [, mesStr] = mesReferencia.split("-");
-      return String(Number(mesStr)).padStart(2, "0");
-    }
-
-    function formatarMoeda(valor) {
-      return valor.toLocaleString("pt-BR", {
-        style: "currency",
-        currency: "BRL"
-      });
-    }
-
-    function criarLista() {
-      lista.innerHTML = "";
-
-      nomes.forEach(nome => {
-        const item = document.createElement("div");
-        item.className = "item";
-        item.dataset.nome = nome.toLowerCase();
-
-        const info = document.createElement("div");
-        info.className = "info-pessoa";
-
-        const ladoEsquerdo = document.createElement("div");
-        ladoEsquerdo.style.display = "flex";
-        ladoEsquerdo.style.alignItems = "center";
-        ladoEsquerdo.style.gap = "12px";
-
-        const checkbox = document.createElement("input");
-        checkbox.type = "checkbox";
-        checkbox.dataset.nome = nome;
-        checkbox.addEventListener("change", salvarEstado);
-
-        const nomeEl = document.createElement("span");
-        nomeEl.className = "nome";
-        nomeEl.textContent = nome;
-
-        ladoEsquerdo.appendChild(checkbox);
-        ladoEsquerdo.appendChild(nomeEl);
-
-        const status = document.createElement("span");
-        status.className = "status pendente";
-        status.textContent = "PENDENTE";
-
-        info.appendChild(ladoEsquerdo);
-        info.appendChild(status);
-
-        item.appendChild(info);
-        lista.appendChild(item);
-      });
-    }
-
-    function atualizarResumo() {
-      const checkboxes = [...document.querySelectorAll('input[type="checkbox"]')];
-      const pagos = checkboxes.filter(cb => cb.checked).length;
-      const pendentes = checkboxes.length - pagos;
-      const total = pagos * VALOR_COTA;
-
-      totalPagosEl.textContent = pagos;
-      totalPendentesEl.textContent = pendentes;
-      totalArrecadadoEl.textContent = formatarMoeda(total);
-      mesReferenciaTelaEl.textContent = nomeMesReferencia(MES_REFERENCIA);
-    }
-
-    function aplicarEstado() {
-      document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
-        const nome = cb.dataset.nome;
-        const item = cb.closest(".item");
-        const nomeEl = item.querySelector(".nome");
-        const status = item.querySelector(".status");
-
-        if (PAGAMENTOS_FIXOS[nome] && MES_REFERENCIA <= PAGAMENTOS_FIXOS[nome]) {
-          cb.checked = true;
-          cb.disabled = true;
-        } else {
-          cb.disabled = false;
-          cb.checked = !!ESTADO_ATUAL[nome];
-        }
-
-        if (cb.checked) {
-          item.classList.add("pago");
-          status.className = "status pago";
-          status.textContent = "PAGO";
-          nomeEl.classList.add("pago");
-        } else {
-          item.classList.remove("pago");
-          status.className = "status pendente";
-          status.textContent = "PENDENTE";
-          nomeEl.classList.remove("pago");
-        }
-      });
-
-      atualizarResumo();
-      aplicarBusca();
-    }
-
-    async function carregarDoServidor() {
-      try {
-        const docRef = db.collection("pagamentosControle").doc("ultimo");
-        const snap = await docRef.get();
-
-        if (snap.exists) {
-          const data = snap.data();
-          MES_REFERENCIA = data?.mes || MES_ATUAL;
-          ESTADO_ATUAL = data?.estado || {};
-        } else {
-          MES_REFERENCIA = MES_ATUAL;
-          ESTADO_ATUAL = {};
-        }
-
-        aplicarEstado();
-      } catch (erro) {
-        console.error("Erro ao carregar do servidor:", erro);
-      }
-    }
-
-    async function salvarEstado() {
-      const estado = {};
-
-      document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
-        if (!cb.disabled) {
-          estado[cb.dataset.nome] = cb.checked;
-        }
-      });
-
-      ESTADO_ATUAL = estado;
-
-      try {
-        const docRef = db.collection("pagamentosControle").doc("ultimo");
-        await docRef.set({
-          mes: MES_REFERENCIA,
-          estado: ESTADO_ATUAL
-        });
-
-        aplicarEstado();
-      } catch (erro) {
-        console.error("Erro ao salvar no servidor:", erro);
-      }
-    }
-
-    function iniciarListenerTempoReal() {
-      const docRef = db.collection("pagamentosControle").doc("ultimo");
-
-      docRef.onSnapshot(
-        snap => {
-          if (snap.exists) {
-            const data = snap.data();
-            MES_REFERENCIA = data?.mes || MES_ATUAL;
-            ESTADO_ATUAL = data?.estado || {};
-          } else {
-            MES_REFERENCIA = MES_ATUAL;
-            ESTADO_ATUAL = {};
-          }
-
-          aplicarEstado();
-        },
-        erro => {
-          console.error("Erro no listener em tempo real:", erro);
-        }
-      );
-    }
-
-    function aplicarBusca() {
-      const termo = busca.value.trim().toLowerCase();
-
-      document.querySelectorAll(".item").forEach(item => {
-        const nome = item.dataset.nome;
-        item.classList.toggle("escondido", !nome.includes(termo));
-      });
-    }
-
-    async function copiarResultados() {
-      const pagos = [];
-      const pendentes = [];
-
-      document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
-        if (cb.checked) {
-          pagos.push(cb.dataset.nome);
-        } else {
-          pendentes.push(cb.dataset.nome);
-        }
-      });
-
-      const usarArroba = pendentes.length <= 10;
-      const totalArrecadado = (pagos.length * VALOR_COTA).toFixed(2).replace(".", ",");
-      const NOME_MES = nomeMesReferencia(MES_REFERENCIA);
-      const MES_NUMERO = numeroMesReferencia(MES_REFERENCIA);
-
-      let texto =
-`🎯 *COTA MENSAL – MEGA-SENA + LOTOFÁCIL*
-
-💰 *VALOR:* R$ ${VALOR_COTA.toFixed(2).replace(".", ",")}
-📅 *MÊS:* ${NOME_MES}
-⏰ *PAGAMENTO ATÉ:* 09/${MES_NUMERO}
-
-🔑 *PIX:* 71999989616
-
-🎰 01 Jogo de *09 dezenas* na *Mega-Sena*
-🎰 01 Jogo de *17 dezenas* na *Lotofácil*
-
-━━━━━━━━━━━━━━
-✅ *COTAS PAGAS:* ${pagos.length}
-💵 *TOTAL ARRECADADO:* R$ ${totalArrecadado}
-━━━━━━━━━━━━━━
-
-📋 *PAGOS*
-`;
-
-      pagos.forEach((nome, i) => {
-        texto += `${String(i + 1).padStart(2, "0")} - ${nome} - *PG*\n`;
-      });
-
-      if (pendentes.length > 0) {
-        texto += `\n⚠️ *COTAS PENDENTES:* ${pendentes.length}\n`;
-
-        if (usarArroba) {
-          texto += "👇 *ATENÇÃO*\n";
-        }
-
-        pendentes.forEach(nome => {
-          texto += usarArroba ? `@${nome}\n` : `${nome}\n`;
-        });
-      }
-
-      try {
-        await navigator.clipboard.writeText(texto);
-        alert("Texto copiado para o WhatsApp ✅");
-      } catch (erro) {
-        console.error("Erro ao copiar:", erro);
-        alert("Não foi possível copiar o texto.");
-      }
-    }
-
-    // ================= EVENTOS =================
-    busca.addEventListener("input", aplicarBusca);
-
-    btnCopiar.addEventListener("click", copiarResultados);
-
-    btnSair.addEventListener("click", () => {
-      if (typeof logout === "function") {
-        logout();
-      } else {
-        alert("Função logout() não encontrada.");
-      }
-    });
-
-    // ================= INÍCIO =================
-    criarLista();
-    carregarDoServidor();
-    iniciarListenerTempoReal();
-  </script>
-</body>
-</html><!DOCTYPE html>
-<html lang="pt-br">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Controle de Pagamentos</title>
-
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 15px;
-      max-width: 700px;
-      margin: 0 auto;
-    }
-
-    h2 {
-      margin-top: 20px;
-    }
-
-    label {
-      display: block;
-      margin: 6px 0;
-      padding: 6px 8px;
-      border-radius: 6px;
-    }
-
-    .pago {
-      color: green;
-      font-weight: bold;
-      background: #f1fff1;
-    }
-
-    button {
-      margin-top: 20px;
-      padding: 12px;
-      font-size: 16px;
-      width: 100%;
-      cursor: pointer;
-      border: none;
-      border-radius: 8px;
-      background: #0d6efd;
-      color: white;
-    }
-
-    button:hover {
-      opacity: 0.95;
-    }
-
-    .btn-sair {
-      background: #dc3545;
-      margin-top: 0;
-      margin-bottom: 10px;
-    }
-  </style>
-
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-</head>
-<body>
-
-  <button class="btn-sair" id="btnSair">Sair</button>
-
-  <h2>Controle de Pagamentos</h2>
-
-  <div id="lista"></div>
-
-  <button id="btnCopiar">Copiar para WhatsApp</button>
-
-  <script>
-    // ================= FIREBASE =================
-    const firebaseConfig = {
-      apiKey: "SUA_API_KEY",
-      authDomain: "SEU_AUTH_DOMAIN",
-      projectId: "SEU_PROJECT_ID",
-      storageBucket: "SEU_STORAGE_BUCKET",
-      messagingSenderId: "SEU_MESSAGING_SENDER_ID",
-      appId: "SEU_APP_ID",
-      measurementId: "SEU_MEASUREMENT_ID"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-
-    // ================= DATA ATUAL =================
-    const hoje = new Date();
-    const MES_ATUAL = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, "0")}`;
-
-    let MES_REFERENCIA = MES_ATUAL;
-    let ESTADO_ATUAL = {};
-
-    // ================= FUNÇÕES DE DATA =================
-    function nomeMesReferencia(mesReferencia) {
-      const [anoStr, mesStr] = mesReferencia.split("-");
-      const ano = Number(anoStr);
-      const mes = Number(mesStr);
-
-      return new Date(ano, mes - 1, 1)
-        .toLocaleString("pt-BR", { month: "long" })
-        .toUpperCase();
-    }
-
-    function numeroMesReferencia(mesReferencia) {
-      const [, mesStr] = mesReferencia.split("-");
-      return String(Number(mesStr)).padStart(2, "0");
-    }
-
-    // ================= NOMES =================
-    const nomes = [
-      "Alexsandro Teles","Aline Goes","Ana Paula Ribeiro","Andréia Dias","Angelo Miranda",
-      "Celina Rosa","Cilene Queiroz","Cláudio Matos","Dailza Araújo","Diego Barbosa",
-      "Editânia","Eduardo Oliveira","Emilson Barbosa","Evanice Santos",
-      "Fabiano Souza","Fátima Carvalho","Gersenildo França","Graça Teixeira",
-      "Helena Argolo","Isabela Santana","Ivana Guimarães","Jacira Miranda",
-      "Jadson Miranda","Jaílson Souza","Janmily Mendes","Joseane Oliveira",
-      "Juliana Oliveira","Leandro Nascimento","Lúcia Argolo",
-      "Luciene Oliveira","Manoel Messias","Manuela Rios","Marco Costa",
-      "Maria Espinheira","Mauro Kleber","Mônica Mota","Mônica Pereira",
-      "Patrícia Reis","Reijane Silva","Rodrigo Müller","Rosa Oliveira","Rose Santana",
-      "Simone Cunha","Sueli Ramos","Suely Santos","Tatiana Nascimento",
-      "Vânia Carvalho","Vilma Gravata","Vilma Patrícia","Wilson Dias"
-    ];
-
-    // ================= PAGAMENTOS FIXOS =================
-    const PAGAMENTOS_FIXOS = {
-      "Jacira Miranda": "2026-12"
-    };
-
-    // ================= ELEMENTOS =================
-    const divLista = document.getElementById("lista");
-    const btnCopiar = document.getElementById("btnCopiar");
-    const btnSair = document.getElementById("btnSair");
-
-    // ================= CRIAR CHECKBOXES =================
-    function criarLista() {
-      divLista.innerHTML = "";
-
-      nomes.forEach(nome => {
-        const label = document.createElement("label");
-        const cb = document.createElement("input");
-
-        cb.type = "checkbox";
-        cb.dataset.nome = nome;
-        cb.addEventListener("change", salvarEstado);
-
-        label.appendChild(cb);
-        label.append(" " + nome);
-        divLista.appendChild(label);
-      });
-    }
-
-    // ================= APLICAR ESTADO =================
-    function aplicarEstado() {
-      document.querySelectorAll("input[type='checkbox']").forEach(cb => {
-        const nome = cb.dataset.nome;
-
-        if (PAGAMENTOS_FIXOS[nome] && MES_REFERENCIA <= PAGAMENTOS_FIXOS[nome]) {
-          cb.checked = true;
-          cb.disabled = true;
-          cb.parentElement.classList.add("pago");
-        } else {
-          cb.disabled = false;
-          cb.checked = !!ESTADO_ATUAL[nome];
-          cb.parentElement.classList.toggle("pago", cb.checked);
-        }
-      });
-    }
-
-    // ================= CARREGAR DO FIRESTORE =================
-    async function carregarDoServidor() {
-      try {
-        const docRef = db.collection("pagamentosControle").doc("ultimo");
-        const snap = await docRef.get();
-
-        if (snap.exists) {
-          const data = snap.data();
-
-          MES_REFERENCIA = data?.mes || MES_ATUAL;
-          ESTADO_ATUAL = data?.estado || {};
-        } else {
-          MES_REFERENCIA = MES_ATUAL;
-          ESTADO_ATUAL = {};
-        }
-
-        aplicarEstado();
-      } catch (erro) {
-        console.error("Erro ao carregar dados do servidor:", erro);
-      }
-    }
-
-    // ================= SALVAR NO FIRESTORE =================
-    async function salvarEstado() {
-      const estado = {};
-
-      document.querySelectorAll("input[type='checkbox']").forEach(cb => {
-        if (!cb.disabled) {
-          estado[cb.dataset.nome] = cb.checked;
-        }
-
-        cb.parentElement.classList.toggle("pago", cb.checked);
-      });
-
-      ESTADO_ATUAL = estado;
-
-      try {
-        const docRef = db.collection("pagamentosControle").doc("ultimo");
-        await docRef.set({
-          mes: MES_REFERENCIA,
-          estado: ESTADO_ATUAL
-        });
-      } catch (erro) {
-        console.error("Erro ao salvar no servidor:", erro);
-      }
-    }
-
-    // ================= LISTENER EM TEMPO REAL =================
-    function iniciarListenerTempoReal() {
-      const docRef = db.collection("pagamentosControle").doc("ultimo");
-
-      docRef.onSnapshot(
-        (snap) => {
-          if (snap.exists) {
-            const data = snap.data();
-            MES_REFERENCIA = data?.mes || MES_ATUAL;
-            ESTADO_ATUAL = data?.estado || {};
-          } else {
-            MES_REFERENCIA = MES_ATUAL;
-            ESTADO_ATUAL = {};
-          }
-
-          aplicarEstado();
-        },
-        (erro) => {
-          console.error("Erro no listener em tempo real:", erro);
-        }
-      );
-    }
-
-    // ================= COPIAR TEXTO =================
-    async function copiarResultados() {
-      const VALOR = 19.60;
-      const pagos = [];
-      const pendentes = [];
-
-      document.querySelectorAll("input[type='checkbox']").forEach(cb => {
-        if (cb.checked) {
-          pagos.push(cb.dataset.nome);
-        } else {
-          pendentes.push(cb.dataset.nome);
-        }
-      });
-
-      const usarArroba = pendentes.length <= 10;
-      const totalArrecadado = (pagos.length * VALOR).toFixed(2).replace(".", ",");
-
-      const NOME_MES = nomeMesReferencia(MES_REFERENCIA);
-      const MES_NUMERO = numeroMesReferencia(MES_REFERENCIA);
-
-      let texto =
 `🎯 *COTA MENSAL – MEGA-SENA + LOTOFÁCIL*
 
 💰 *VALOR:* R$ 19,60
@@ -2145,50 +472,33 @@ tempoReal();
 
 📋 *PAGOS*
 `;
-
-      pagos.forEach((nome, i) => {
-        texto += `${String(i + 1).padStart(2, "0")} - ${nome} - *PG*\n`;
-      });
-
-      if (pendentes.length > 0) {
-        texto += `\n⚠️ *COTAS PENDENTES:* ${pendentes.length}\n`;
-
-        if (usarArroba) {
-          texto += "👇 *ATENÇÃO*\n";
-        }
-
-        pendentes.forEach(nome => {
-          texto += usarArroba ? `@${nome}\n` : `${nome}\n`;
-        });
-      }
-
-      try {
-        await navigator.clipboard.writeText(texto);
-        alert("Texto copiado para o WhatsApp ✅");
-      } catch (erro) {
-        console.error("Erro ao copiar texto:", erro);
-        alert("Não foi possível copiar o texto.");
-      }
+    pagos.forEach((n, i) => { texto += `${String(i+1).padStart(2,"0")} - ${n} - *PG*\n`; });
+    if (pendentes.length > 0) {
+      texto += `\n⚠️ *COTAS PENDENTES:* ${pendentes.length}\n`;
+      if (usarArroba) texto += "👇 *ATENÇÃO*\n";
+      pendentes.forEach(n => { texto += usarArroba ? `@${n}\n` : `${n}\n`; });
     }
+    try {
+      await navigator.clipboard.writeText(texto);
+      alert("Texto copiado para o WhatsApp ✅");
+    } catch (e) { alert("Não foi possível copiar o texto."); }
+  }
 
-    // ================= BOTÃO SAIR =================
-    btnSair.addEventListener("click", () => {
-      if (typeof logout === "function") {
-        logout();
-      } else {
-        alert("Função logout() não encontrada.");
-      }
-    });
+  busca.addEventListener("input", aplicarBusca);
+  btnCopiar.addEventListener("click", copiarResultados);
+  btnSair.addEventListener("click", () => { if (typeof logout === "function") logout(); });
+  document.addEventListener("visibilitychange", () => { if (!document.hidden && SYNC_ATIVO) carregarDoServidor(); });
+  window.addEventListener("focus", () => { if (SYNC_ATIVO) carregarDoServidor(); });
 
-    btnCopiar.addEventListener("click", copiarResultados);
+  criarLista();
+  aplicarEstado();
 
-    // ================= INICIALIZAÇÃO =================
-    criarLista();
+  firebase.auth().onAuthStateChanged(user => {
+    if (!user) return;
     carregarDoServidor();
     iniciarListenerTempoReal();
-
-    // opcional: reforço periódico
-    setInterval(carregarDoServidor, 5000);
+    intervalIdSync = setInterval(() => { if (SYNC_ATIVO) carregarDoServidor(); }, 5000);
+  });
   </script>
 </body>
 </html>

@@ -2,4 +2,4 @@
 const USUARIO_FIXO = "Eduardo";
 
 // hash SHA-256 da senha (exemplo: senha = 1960)
-const HASH_SENHA = "c7a5a1e6c93bde91b2c90d4dbf8e1f08c60a8b2d92c8b4e4f5d3d6f8d9c3c2a1";
+const HASH_SENHA = "e3ba5360c7eee2b0adaf703733c1131cebac9145205975a0b624380238de302d";

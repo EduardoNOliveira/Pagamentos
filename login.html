@@ -2,16 +2,107 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>Login</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login — Controle de Pagamentos</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    min-height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);
+  }
+
+  .card {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 40px 36px;
+    width: 100%;
+    max-width: 380px;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.35);
+  }
+
+  .card-logo {
+    font-size: 2.2rem;
+    text-align: center;
+    margin-bottom: 6px;
+  }
+
+  .card h2 {
+    text-align: center;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 28px;
+  }
+
+  label.field-label {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+
+  input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-family: inherit;
+    color: #0f172a;
+    background: #f8fafc;
+    margin-bottom: 18px;
+    transition: border-color .2s, box-shadow .2s;
+    outline: none;
+  }
+
+  input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59,130,246,.15);
+    background: #fff;
+  }
+
+  button {
+    width: 100%;
+    padding: 13px;
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: opacity .2s, transform .1s;
+    margin-top: 4px;
+  }
+
+  button:hover  { opacity: .9; }
+  button:active { transform: scale(.98); }
+</style>
 </head>
 <body>
 
-<h2>Login</h2>
+<div class="card">
+  <div class="card-logo">🎯</div>
+  <h2>Controle de Pagamentos</h2>
 
-<input id="user" placeholder="Usuário"><br><br>
-<input id="pass" type="password" placeholder="Senha"><br><br>
+  <label class="field-label" for="user">Usuário</label>
+  <input id="user" type="text" placeholder="Digite seu usuário" autocomplete="username">
 
-<button onclick="login()">Entrar</button>
+  <label class="field-label" for="pass">Senha</label>
+  <input id="pass" type="password" placeholder="••••••••" autocomplete="current-password">
+
+  <button onclick="login()">Entrar</button>
+</div>
 
 <script src="auth.js"></script>
 </body>
