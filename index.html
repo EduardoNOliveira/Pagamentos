@@ -399,8 +399,16 @@
       const snap = await db.collection("pagamentosControle").doc("ultimo").get();
       if (snap.exists) {
         const d = snap.data();
-        MES_REFERENCIA = d?.mes    || MES_ATUAL;
-        ESTADO_ATUAL   = d?.estado || {};
+        const mesFirestore = d?.mes || MES_ATUAL;
+        if (mesFirestore !== MES_ATUAL) {
+          // Mês virou: zerar estado e salvar novo mês
+          MES_REFERENCIA = MES_ATUAL;
+          ESTADO_ATUAL   = {};
+          await db.collection("pagamentosControle").doc("ultimo").set({ mes: MES_ATUAL, estado: {} });
+        } else {
+          MES_REFERENCIA = mesFirestore;
+          ESTADO_ATUAL   = d?.estado || {};
+        }
       } else {
         MES_REFERENCIA = MES_ATUAL; ESTADO_ATUAL = {};
       }
@@ -435,8 +443,19 @@
     listenerUnsub = db.collection("pagamentosControle").doc("ultimo").onSnapshot(snap => {
       if (snap.exists) {
         const d = snap.data();
-        MES_REFERENCIA = d?.mes    || MES_ATUAL;
-        ESTADO_ATUAL   = d?.estado || {};
+        const mesFirestore = d?.mes || MES_ATUAL;
+        if (mesFirestore !== MES_ATUAL) {
+          // Mês virou: zerar estado e salvar novo mês
+          MES_REFERENCIA = MES_ATUAL;
+          ESTADO_ATUAL   = {};
+          db.collection("pagamentosControle").doc("ultimo")
+            .set({ mes: MES_ATUAL, estado: {} })
+            .then(() => { ultimoSyncEmMs = Date.now(); })
+            .catch(e => { if (erroPermissao(e)) desativarSync(e); });
+        } else {
+          MES_REFERENCIA = mesFirestore;
+          ESTADO_ATUAL   = d?.estado || {};
+        }
       } else { MES_REFERENCIA = MES_ATUAL; ESTADO_ATUAL = {}; }
       ultimoSyncEmMs = Date.now();
       aplicarEstado();
